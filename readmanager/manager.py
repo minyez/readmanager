@@ -101,6 +101,13 @@ class manager():
         else:
             print("Reloaded. %d items read." % len(self.books))
 
+    def add_new_book(self, bi):
+        '''
+        Append new book_item instance 
+        '''
+        assert isinstance(bi, book_item)
+        self.books.append(bi)
+
     def update_json_all(self):
         '''
         Update all book_item JSONs with update_json method

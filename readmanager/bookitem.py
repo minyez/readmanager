@@ -75,12 +75,14 @@ class book_item():
             the file name of JSON input
 
         create_new : bool
-            flag to create a new empty json file by __dump_json
-            if set true, the original JSON will be overwritten
+            flag to create a new #empty json file by __dump_json
+            #if set true, the original JSON will be overwritten
         '''
         if create_new:
+            # deal with duplicate outside
+            assert not os.path.isfile(jsonfile)
             self.__tagDict = {}
-            self.__dump_json(jsonfile, overwrite=True)
+            #self.__dump_json(jsonfile, overwrite=True)
         with open(jsonfile, 'r') as hFileIn:
             self.__tagDict = json.load(hFileIn)
         # absolute path is used

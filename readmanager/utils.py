@@ -16,6 +16,7 @@ import json
 import subprocess as sp
 from readmanager.presenter import presenter
 from readmanager.manager import manager
+from readmanager.bookitem import book_item
 
 def __init_default_config(pathConfig):
     '''
@@ -94,11 +95,12 @@ def get_config():
             raise FileNotFoundError("Custom READMANA_CONFIG file is not found.")
 
     return pathConfig
+
 def flush_screen():
     '''
     flush the screen
     '''
-    pass
+    os.system('clear')
 
 # ===========================================================
 # TODO open utilities for linux and windows
@@ -199,11 +201,35 @@ def modify(bm):
     iBI = n - 1
     bm.change_tag_book(iBI, tag, newValue)
 
+# TODO create_new
 def create_new(bm):
     '''
     create a new book item
     '''
     assert isinstance(bm, manager)
+    return
+   
+    while True:
+        newJSONName = input("Enter filename of new item (wo .json): ").strip()
+        if newJSONName.lower().endswith(".json"):
+            newJSONName = newJSONName[:-5]
+        newJSONPath = os.path.join(bm.dbJSON, newJSONName) + ".json"
+        # check duplicate
+        if os.path.isfile(newJSONPath):
+            print("Found json with the same name in database. Retry.")
+        else:
+            break
+    newBookItem = book_item(newJSONPath, create_new=True)
+    # update tags
+    __author = input("Author: ").strip()
+    __title = input("Title: ").strip()
+    __pageTotal = input("Total #pages: ").strip()
+    # noteType create new
+    # timeLastMod
+    # dateAdded
+    # datePlan
+    # update log
+    bm.add_new_book(newBookItem)
 
 # ===========================================================
 # TODO Presenter utilities

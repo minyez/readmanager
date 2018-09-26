@@ -70,16 +70,20 @@ class presenter:
         self.__progress = self.__manager.get_progress_all()
         self.__pages = self.__manager.get_tags("pageTotal")
 
-    def rebuild(self):
-        '''
-        Rebuild the items to show, when the manager has been refreshed
-        '''
-        self.__build()
+    #def rebuild(self):
+    #    '''
+    #    Rebuild the items to show, when the manager has been refreshed
+    #    '''
+    #    self.__build()
 
     def show(self):
         '''
         Show the presenter
         '''
+        # check whether the manager has added new book items
+        # and rebuild the presenter
+        if self.__nBooks != len(self.__manager):
+            self.__build()
         print("=" * (len(self.__head) - len(self.__colorHead) - len('\033[0m')))
         print(self.__head)
         for i in range(self.__nBooks):

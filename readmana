@@ -20,15 +20,15 @@ mode.add_argument("-c", dest='check', action="store_true", \
 mode.add_argument("-r", dest='read', action="store_true", \
                     help="Read-mode")
 params = parser.parse_args()
-# ===================================================================
 
 # ===================================================================
-# Read config file, load the manager and presenter, and show once
+# Read config file, load the manager and presenter,
+# flush screen and show all items once.
 configFile = utils.get_config()
 bookmanager = manager(configFile)
 bookpre = presenter(bookmanager)
+utils.flush_screen()
 bookpre.show()
-# ===================================================================
 
 # ===================================================================
 # if check-mode is triggered, exit safely
@@ -97,7 +97,7 @@ while True:
         fRetry = False
         if option in dictOptionsMana:
             dictOptionsMana[option](bookmanager)
-            bookpre.rebuild()
+            #bookpre.rebuild()
         elif option in dictOptionsPre:
             dictOptionsPre[option](bookpre)
         elif option in dictOptionsManaPre:
