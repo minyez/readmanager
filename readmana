@@ -52,8 +52,8 @@ dictOptionsManaPre = { \
 
 # ===================================================================
 # Set help string according to Options dictionary
-helpStrRead = '    #: open No.# book and note (if available);\n'
-helpStrSQ = '%5s: Save & quit; (save NI)\n' % {True:"0", False:"0/s"}.get(params.read)
+helpStrRead = 'Menu:\n    #: open No.# book and note (if available);\n'
+helpStrSQ = '%5s: Save & quit;\n' % {True:"0", False:"0/s"}.get(params.read)
 helpStrMana = '    m: Modify item (NI);\n    c: Create new item (NI);\n'
 helpStrPre = '    p: print Presenter;\n    i: print Item details (NI);\n'
 helpStrManaPre = '    f: Find item (NI);\n'

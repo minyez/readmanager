@@ -13,6 +13,7 @@ from __future__ import print_function, absolute_import
 import os
 import sys
 import json
+import subprocess as sp
 from readmanager.presenter import presenter
 from readmanager.manager import manager
 
@@ -93,18 +94,98 @@ def get_config():
             raise FileNotFoundError("Custom READMANA_CONFIG file is not found.")
 
     return pathConfig
+def flush_screen():
+    '''
+    flush the screen
+    '''
+    pass
 
 # ===========================================================
-# TODO open utilities
+# TODO open utilities for linux and windows
 def open_book(bm, iBI):
     '''
+    Open the book and note with the default opener in subprocess
+    and ask for page and log update
+    Note: currently support macOS only
+
     Parameters
     ----------
     bm : manager instance
     iBI : int
+        the index of the book item in bm
     '''
     assert isinstance(bm, manager)
-    book = bm[iBI]
+    assert iBI in range(len(bm))
+    book = bm.books[iBI]
+    stateNote, stateFile = bm.get_note_source_state(iBI)
+    pathNote, pathFile = bm.get_note_path(iBI), bm.books[iBI].get_source()
+    extNote = book.get_tag("noteType").lower()
+    extFile = book.get_source_ext()
+
+    openSystem = {"darwin": __open_book_darwin, }
+    platform = sys.platform.lower()
+
+    print("--  Try to open note from: %s" % pathNote)
+    print("--  Try to open file from: %s" % pathFile)
+    if platform in openSystem:
+        openSystem[platform](bm, (stateNote, stateFile), (pathNote, pathFile), (extNote, extFile))
+    else:
+        print("--  Open utility for %s is not supported. Please open manually") 
+    __fUpdate = input("--  Update page? (y/N)").strip().lower()
+    if __fUpdate in ["y", "yes"]:
+        while True:
+            __pageNew = input("    %d --> (max %d)" % (book.pageCurrent, book.pageTotal))
+            try:
+                __pageNew = int(__pageNew.split()[0])
+                break
+            except ValueError:
+                pass
+            except IndexError:
+                pass
+        book.update_current_page(__pageNew)
+        book.update_last_read()
+        book.update_log()
+        book.update_json()
+        print("--  Log, JSON updated :)")
+    else:
+        print("--  Maybe next time :)")
+
+def __open_book_darwin(bm, states, paths, exts):
+    '''
+    Open the book and note with the default opener in subprocess for macOS
+
+    Parameters
+    ----------
+    bm : manager instance
+    states : 2-member tuple of bool or None
+        states of note and source file
+    paths: 2-member tuple of str
+        paths of note and source file
+    exts : 2-member tuple of str
+        extensions of note and source file
+    '''
+
+    stateNote, stateFile = states
+    pathNote, pathFile = paths
+    extNote, extFile = exts
+
+    openerNote = ["open", pathNote]
+    openerFile = ["open", pathFile]
+    if extFile == '':
+        # opener with Textedit for file without extension
+        openerFile.append("-e")
+    if extNote in bm.opener:
+        if bm.opener[extNote] is not None:
+            openerNote.extend(["-a", bm.opener[extNote]])
+    if extFile in bm.opener:
+        if bm.opener[extFile] is not None:
+            openerFile.extend(["-a", bm.opener[extFile]])
+
+    # start opening by calling subprocess
+    if stateNote:
+        noteProc = sp.Popen(openerNote)
+    if stateFile:
+        fileProc = sp.Popen(openerFile)
 
 # ===========================================================
 # TODO Manager utilities
@@ -151,14 +232,9 @@ def find_item(bm, pre):
     # ask find criterion
 
 # ===========================================================
-# TODO Exit utilities
 def save_exit(bm):
     '''
     Save all jsons and exit
-
-    TODO
-    ----
-    Update logs
     '''
     assert isinstance(bm, manager)
     bm.update_json_all()

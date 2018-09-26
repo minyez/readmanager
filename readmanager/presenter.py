@@ -4,14 +4,18 @@ the presenter class is defined to show the reading and note progress of books
 '''
 
 from __future__ import print_function, absolute_import
-import os
-import curses
+#import os
 from readmanager.manager import manager
+try:
+    import curses
+except ImportError:
+    pass
 
 class presenter:
     '''
     presenter class
     '''
+    # TODO get terminal widths and allocate proportionally for title, author and ProgBar
     __lenIndex = 3
     __lenTitle = 64
     __lenAuthor = 48
@@ -20,12 +24,16 @@ class presenter:
     __lenPageTot = 5
     __lenNoteMark = 1
     __lenSourceMark = 1
-   
-    # check if 256 term
-    curses.setupterm()
+  
     __use256 = False
-    if curses.tigetnum("colors") == 256:
-        __use256 = True
+    # use curses to check if 256 term
+    try:
+        curses.setupterm()
+        if curses.tigetnum("colors") == 256:
+            __use256 = True
+    # pass if failed to load curses
+    except NameError:
+        pass
 
     __colorHead = '\033[30;47m'
     __colorItem = '\033[0m'
@@ -59,9 +67,8 @@ class presenter:
         self.__nBooks = len(self.__manager)
         self.__titles = self.__manager.get_tags("title")
         self.__authors = self.__manager.get_tags("author")
-        self.__progress = self.__manager.get_progress()
+        self.__progress = self.__manager.get_progress_all()
         self.__pages = self.__manager.get_tags("pageTotal")
-        self.__localSources = self.__manager.get_tags("bookLocalSource")
 
     def rebuild(self):
         '''
@@ -88,34 +95,35 @@ class presenter:
         iBI : int
             the index of item in self.__manager.books
         '''
+        noteState, sourceState = self.__manager.get_note_source_state(iBI)
         print(self.__formatItem % (
             self.__colorItem, \
             self.__lenIndex, iBI + 1, \
             self.__lenAuthor, self.__lenAuthor, self.__authors[iBI], \
             self.__lenTitle, self.__lenTitle, self.__titles[iBI], \
             self.__lenPageTot, self.__pages[iBI], \
-            self.__lenNoteMark, get_file_state(self.__manager.get_note_path(iBI)), \
-            self.__lenSourceMark, get_file_state(self.__localSources[iBI]), \
+            self.__lenNoteMark, get_file_state_marker(noteState), \
+            self.__lenSourceMark, get_file_state_marker(sourceState), \
             self.__lenProgBar, \
             get_prog_barstr(self.__progress[iBI], self.__lenProgBar, self.__use256), \
             self.__lenProg, self.__progress[iBI][0], \
             '\033[0m', \
             ))
 
-def get_file_state(notePath):
+def get_file_state_marker(fileState):
     '''
     Parameters
     ----------
-    notePath : str
+    fileState : str
         the path of note directory
 
     Returns
     -------
-    str : notation for note, ✗ for None, ◆ if the path exists and ? otherwise 
+    str : ✗ for None, ◆ for True and ? otherwise 
     '''
-    if notePath is None:
+    if fileState is None:
         return "✗"
-    if os.path.isfile(notePath):
+    if fileState is True:
         return "◆"
     return "?"
 

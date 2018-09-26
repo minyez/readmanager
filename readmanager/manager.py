@@ -9,7 +9,6 @@ import os
 from fnmatch import fnmatch
 from readmanager.bookitem import book_item
 
-
 class manager():
     '''
     manager class
@@ -24,7 +23,14 @@ class manager():
     '''
 
     # default note opener 
-    __noteOpenDe = {"tex": "texstudio", "md": "Typora", "txt": "nvim"}
+    __openerDe = { \
+            "tex": None, \
+            "md": None, \
+            "txt": None, \
+            "pdf": None, \
+            "docx": None, \
+            "doc": None, \
+            }
     __paraConfigMust = ("dbJSON", "dbNote")
 
     # try to get custom config file path from READMANA_CONFIG environment variable
@@ -58,7 +64,8 @@ class manager():
 
     def __load_config(self):
         '''
-        load existing config file
+        Load existing config file
+        Namely, define dbJSON, dbNote and opener attributes
         '''
         with open(self.pathConfig, 'r') as hFileIn:
             self.__dictConfig = json.load(hFileIn)
@@ -68,8 +75,12 @@ class manager():
                 raise ValueError("Broken config.json: key \"%s\" not found" % key)
         self.dbJSON = self.__dictConfig["dbJSON"]
         self.dbNote = self.__dictConfig["dbNote"]
+        self.opener = self.__openerDe
+        if "opener" in self.__dictConfig:
+            self.opener = self.__dictConfig["opener"]
         assert os.path.isdir(self.dbJSON)
         assert os.path.isdir(self.dbNote)
+        assert isinstance(self.opener, dict)
 
     def __load_book_items(self, reLoad=False):
         '''
@@ -79,7 +90,9 @@ class manager():
             print("Manager getting all book items... ", end="")
         else:
             print("Manager reloading... ", end="")
-            
+        
+        # clear books
+        self.books = []
         for ifile in os.listdir(self.dbJSON):
             if fnmatch(ifile.lower(), "*.json"):
                 self.books.append(book_item(os.path.join(self.dbJSON, ifile)))
@@ -121,7 +134,8 @@ class manager():
 
     def get_tags(self, tag):
         '''
-        get the values of a particular tag from all book_item
+        Get the values of a particular tag from all book_item by get_tag method
+        See book_item class for more information
 
         Parameters
         ----------
@@ -136,11 +150,11 @@ class manager():
         '''
         return [bi.get_tag(tag) for bi in self.books]
 
-    def get_progress(self):
+    def get_progress_all(self):
         '''
         get progress of all books
         '''
-        return [bi.return_progress() for bi in self.books]
+        return [bi.get_progress() for bi in self.books]
 
     def get_note_path(self, iBI):
         '''
@@ -162,11 +176,34 @@ class manager():
             return None
 
         notePrefix = os.path.basename(noteLoc)
-        notePath = os.path.join(noteLoc, notePrefix)
+        notePath = os.path.join(os.path.expanduser(noteLoc), notePrefix)
         notePath = notePath + "." + noteType
         if notePath.startswith("-/"):
             notePath = os.path.join(self.dbNote, notePath[2:])
         return notePath
 
+    def get_note_source_state(self, iBI):
+        '''
+        Parameters
+        ----------
+        iBI : int
+            index of book item
+        
+        Returns
+        -------
+        None/False/True, None/False/True : 
+            None if path not set, True for file found, otherwise False
+        '''
+       
+        # note, source file
+        state = [None, None]
+        path = [self.books[iBI].get_source(), self.get_note_path(iBI)]
+
+        for i in range(2):
+            if path[i] is None:
+                continue
+            state[i] = os.path.isfile(path[i])
+
+        return tuple(state)
 
 
