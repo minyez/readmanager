@@ -95,7 +95,19 @@ def get_config():
     return pathConfig
 
 # ===========================================================
-# Manager utilities
+# TODO open utilities
+def open_book(bm, iBI):
+    '''
+    Parameters
+    ----------
+    bm : manager instance
+    iBI : int
+    '''
+    assert isinstance(bm, manager)
+    book = bm[iBI]
+
+# ===========================================================
+# TODO Manager utilities
 def modify(bm):
     '''
     Modify an book item
@@ -113,7 +125,7 @@ def create_new(bm):
     assert isinstance(bm, manager)
 
 # ===========================================================
-# Presenter utilities
+# TODO Presenter utilities
 def show_item(pre):
     '''
     Show the a book item
@@ -128,7 +140,7 @@ def print_pre(pre):
     pre.show()
 
 # ===========================================================
-# Manager & Presenter utilities
+# TODO Manager & Presenter utilities
 def find_item(bm, pre):
     '''
     Find a particular item
@@ -139,7 +151,7 @@ def find_item(bm, pre):
     # ask find criterion
 
 # ===========================================================
-# Exit utilities
+# TODO Exit utilities
 def save_exit(bm):
     '''
     Save all jsons and exit

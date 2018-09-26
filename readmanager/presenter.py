@@ -5,6 +5,7 @@ the presenter class is defined to show the reading and note progress of books
 
 from __future__ import print_function, absolute_import
 import os
+import curses
 from readmanager.manager import manager
 
 class presenter:
@@ -19,7 +20,13 @@ class presenter:
     __lenPageTot = 5
     __lenNoteMark = 1
     __lenSourceMark = 1
-    
+   
+    # check if 256 term
+    curses.setupterm()
+    __use256 = False
+    if curses.tigetnum("colors") == 256:
+        __use256 = True
+
     __colorHead = '\033[30;47m'
     __colorItem = '\033[0m'
     
@@ -89,7 +96,8 @@ class presenter:
             self.__lenPageTot, self.__pages[iBI], \
             self.__lenNoteMark, get_file_state(self.__manager.get_note_path(iBI)), \
             self.__lenSourceMark, get_file_state(self.__localSources[iBI]), \
-            self.__lenProgBar, get_prog_barstr(self.__progress[iBI], self.__lenProgBar), \
+            self.__lenProgBar, \
+            get_prog_barstr(self.__progress[iBI], self.__lenProgBar, self.__use256), \
             self.__lenProg, self.__progress[iBI][0], \
             '\033[0m', \
             ))
@@ -111,7 +119,7 @@ def get_file_state(notePath):
         return "◆"
     return "?"
 
-def get_prog_barstr(prog, totalBarLen):
+def get_prog_barstr(prog, totalBarLen, use256=False):
     '''
     get progress bar string
 
@@ -120,6 +128,8 @@ def get_prog_barstr(prog, totalBarLen):
     progPercent : list of 2 int
         a percentage of current and plan progress
     totalBarLen : int
+    use256 : bool
+        flag to use 256 color
 
     Returns
     -------
@@ -130,16 +140,16 @@ def get_prog_barstr(prog, totalBarLen):
     assert 0 <= prog[0] <= 100
     assert 0 <= prog[1] <= 100
     colorEnd = '\033[0m'
-    colorPlan = '\033[93m'
-    colorCurrent = '\033[92m'
-
+    colorPlan = '\033[34m'
+    
+    # generate color gradient by __color_grad
+    colorCurrent = __color_grad(prog[0], use256)
     nCurrent = int(prog[0] / 100.0 * (totalBarLen - 2))
     nPlan = int(prog[1] / 100.0 * (totalBarLen - 2))
 
-    # overdue
+    # overdue reset
     if nPlan > 100:
         nPlan = 100
-        colorPlan = '\033[31m'
 
     colorSmall = colorCurrent
     nSmall = nCurrent
@@ -156,3 +166,31 @@ def get_prog_barstr(prog, totalBarLen):
             colorEnd, \
             totalBarLen - 2 - nBig, "." * (totalBarLen - 2 - nBig) \
             )
+
+def __color_grad(prog, use256):
+    '''
+    Generate color for the current progress.
+    If non-256 terminal is used, the light green color (\033[92m) will be used for all prog
+    If a 256 terminal is used, the color for prog will be generated from a manually set gradient.
+    Check https://en.wikipedia.org/wiki/ANSI_escape_code#Colors
+
+    Paramters
+    ---------
+    prog : int
+        the percentage of current progress
+    use256 : bool
+        the flag to use 256-color terminal
+
+    Returns
+    -------
+    str : ANSI escape code
+    '''
+    colorDAC8 = '\033[92m' 
+    ANSISeq = '\033[38;5;%dm'
+    colorGrad256 = [202, 214, 172, 178, 142, 100, 106, 70, 34, 28, 2]
+    iColor = int(float(prog) / 100.0 * (len(colorGrad256) - 1))
+    color256 = ANSISeq % colorGrad256[iColor]
+    if not use256:
+        return colorDAC8
+    return color256
+

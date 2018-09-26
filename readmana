@@ -53,10 +53,10 @@ dictOptionsManaPre = { \
 # ===================================================================
 # Set help string according to Options dictionary
 helpStrRead = '    #: open No.# book and note (if available);\n'
-helpStrSQ = '%5s: Save & quit;\n' % {True:"0", False:"0/s"}.get(params.read)
-helpStrMana = '    m: Modify item;\n    c: Create new item;\n'
-helpStrPre = '    p: print Presenter;\n    i: print Item;\n'
-helpStrManaPre = '    f: Find item;\n'
+helpStrSQ = '%5s: Save & quit; (save NI)\n' % {True:"0", False:"0/s"}.get(params.read)
+helpStrMana = '    m: Modify item (NI);\n    c: Create new item (NI);\n'
+helpStrPre = '    p: print Presenter;\n    i: print Item details (NI);\n'
+helpStrManaPre = '    f: Find item (NI);\n'
 helpStrExit = '    other letters or <0: quit;\n'
 helpStrPrompt = '--> '
 
@@ -83,7 +83,7 @@ while True:
         iBI = int(option) - 1
         if iBI in range(len(bookmanager)):
             fRetry = False
-            # TODO use open utility
+            utils.open_book(bookmanager, iBI)
         elif iBI >= len(bookmanager):
             print("Invalid book #. Retry. ", end="")
             fRetry = True
