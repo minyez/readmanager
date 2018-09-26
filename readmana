@@ -1,0 +1,107 @@
+#!/usr/bin/env python3
+'''
+Main stream of readmanager.
+'''
+
+from __future__ import print_function, absolute_import
+from argparse import ArgumentParser
+import sys
+from readmanager import utils
+from readmanager.manager import manager
+from readmanager.presenter import presenter
+
+# ===================================================================
+# Parser
+description = __doc__
+parser = ArgumentParser(description=description)
+mode = parser.add_mutually_exclusive_group()
+mode.add_argument("-c", dest='check', action="store_true", \
+                    help="Check-mode")
+mode.add_argument("-r", dest='read', action="store_true", \
+                    help="Read-mode")
+params = parser.parse_args()
+# ===================================================================
+
+# ===================================================================
+# Read config file, load the manager and presenter, and show once
+configFile = utils.get_config()
+bookmanager = manager(configFile)
+bookpre = presenter(bookmanager)
+bookpre.show()
+# ===================================================================
+
+# ===================================================================
+# if check-mode is triggered, exit safely
+if params.check:
+    sys.exit(0)
+
+# ===================================================================
+# Options dictionary
+dictOptionsMana = { \
+        "s": utils.save_exit, \
+        "m": utils.modify, \
+        "c": utils.create_new, \
+        }
+dictOptionsPre = { \
+        "p": utils.print_pre, \
+        "i": utils.show_item, \
+        }
+dictOptionsManaPre = { \
+        "f": utils.find_item, \
+        }
+
+# ===================================================================
+# Set help string according to Options dictionary
+helpStrRead = '    #: open No.# book and note (if available);\n'
+helpStrSQ = '%5s: Save & quit;\n' % {True:"0", False:"0/s"}.get(params.read)
+helpStrMana = '    m: Modify item;\n    c: Create new item;\n'
+helpStrPre = '    p: print Presenter;\n    i: print Item;\n'
+helpStrManaPre = '    f: Find item;\n'
+helpStrExit = '    other letters or <0: quit;\n'
+helpStrPrompt = '--> '
+
+if params.read:
+    helpStrMana = ''
+    helpStrPre = ''
+    helpStrManaPre = ''
+
+helpStr = helpStrRead + helpStrSQ + \
+        helpStrMana + helpStrPre + helpStrManaPre + \
+        helpStrExit + \
+        helpStrPrompt
+
+# ===================================================================
+# Start interaction, if non-check mode is selected
+fRetry = False
+while True:
+    if fRetry:
+        option = input(helpStrPrompt).strip()
+    else:
+        option = input(helpStr).strip()
+        
+    try:
+        iBI = int(option) - 1
+        if iBI in range(len(bookmanager)):
+            fRetry = False
+            # TODO use open utility
+        elif iBI >= len(bookmanager):
+            print("Invalid book #. Retry. ", end="")
+            fRetry = True
+        elif iBI == -1:
+            utils.save_exit(bookmanager)
+        else:
+            utils.exit_wo_save()
+    except ValueError:
+        if params.read:
+            utils.exit_wo_save()
+        fRetry = False
+        if option in dictOptionsMana:
+            dictOptionsMana[option](bookmanager)
+            bookpre.rebuild()
+        elif option in dictOptionsPre:
+            dictOptionsPre[option](bookpre)
+        elif option in dictOptionsManaPre:
+            dictOptionsManaPre[option](bookmanager, bookpre)
+        else:
+            utils.exit_wo_save()
+# ===================================================================

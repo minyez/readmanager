@@ -1,0 +1,14 @@
+{
+  "title": "test_book",
+  "author": "minyez",
+  "pageTotal": 100,
+  "pageCurrent": 0,
+  "noteType": null,
+  "noteLocation": null,
+  "bookLocalSource": null,
+  "timeLastRead": null,
+  "timeLastMod": null,
+  "dateAdded": "2018-09-24",
+  "datePlan": "9999-12-31",
+  "log": {}
+}
