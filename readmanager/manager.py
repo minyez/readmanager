@@ -73,13 +73,22 @@ class manager():
         for key in self.__paraConfigMust:
             if key not in self.__dictConfig:
                 raise ValueError("Broken config.json: key \"%s\" not found" % key)
-        self.dbJSON = self.__dictConfig["dbJSON"]
-        self.dbNote = self.__dictConfig["dbNote"]
+        # JSON and note are in the same directory as configuration json. For travis test
+        if self.__dictConfig["dbJSON"] in ["-", "-/"]:
+            self.dbJSON = os.path.abspath(self.pathConfig + "/../JSON")
+        else:
+            self.dbJSON = os.path.expanduser(os.path.expandvars(self.__dictConfig["dbJSON"]))
+        assert os.path.isdir(self.dbJSON)
+
+        if self.__dictConfig["dbNote"] in ["-", "-/"]:
+            self.dbNote = os.path.abspath(self.pathConfig + "/../note")
+        else:
+            self.dbNote = os.path.expanduser(os.path.expandvars(self.__dictConfig["dbNote"]))
+        assert os.path.isdir(self.dbNote)
+
         self.opener = self.__openerDe
         if "opener" in self.__dictConfig:
             self.opener = self.__dictConfig["opener"]
-        assert os.path.isdir(self.dbJSON)
-        assert os.path.isdir(self.dbNote)
         assert isinstance(self.opener, dict)
 
     def __load_book_items(self, reLoad=False):
