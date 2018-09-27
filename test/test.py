@@ -43,21 +43,20 @@ class test_bookitem(ut.TestCase):
         '''
         # book_2 has 100 total pages and currently 0 page is read
         book = book_item("data/JSON/book_2.json")
-        book.change_tag("pageCurrent", book.pageTotal + 1)
         # AssertionError when a non-percentage progress is encountered
-        self.assertRaises(AssertionError, book.return_progress)
+        self.assertRaises(AssertionError, book.update_current_page, book.pageTotal + 1)
         
-        book.change_tag("pageCurrent", 1)
+        book.update_current_page(1)
         # public attributes should be updated if the tag value is changed indeed
         self.assertEqual(book.pageCurrent, 1)
         self.assertTrue(book._book_item__fMod)
-        progCurrent, progPlan = book.return_progress()
+        progCurrent, progPlan = book.get_progress()
         self.assertTrue(progCurrent, 1)
         # log cannot be modified by change_tag method
-        self.assertRaises(AssertionError, book.change_tag, "log", 1)
+        #self.assertRaises(AssertionError, book.change_tag, "log", 1)
         # log
         book.update_log()
-        self.assertTrue(book._book_item__tagDict["log"][dt.date.today()] == 1)
+        self.assertTrue(book._book_item__tagDict["log"][str(dt.date.today())] == 1)
 
 
 class test_manager(ut.TestCase):
@@ -78,11 +77,11 @@ class test_manager(ut.TestCase):
 
         # use change_book_tag to change dateAdded tag of second book to today, test effectiveness
         todayStr = str(dt.date.today())
-        mana.change_book_tag(1, "dateAdded", todayStr)
+        mana[1].update_date_added(todayStr)
         self.assertTrue(mana[1]._book_item__tagDict["dateAdded"] == todayStr)
 
         # test progress calculation utility
-        progress = mana.get_progress()
+        progress = mana.get_progress_all()
         self.assertTrue(progress, [(0, 0), (0, 0)])
 
     def test_from_environ(self):

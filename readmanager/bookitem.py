@@ -83,8 +83,9 @@ class book_item():
             assert not os.path.isfile(jsonfile)
             self.__tagDict = {}
             #self.__dump_json(jsonfile, overwrite=True)
-        with open(jsonfile, 'r') as hFileIn:
-            self.__tagDict = json.load(hFileIn)
+        else:
+            with open(jsonfile, 'r') as hFileIn:
+                self.__tagDict = json.load(hFileIn)
         # absolute path is used
         self.filepath = os.path.abspath(jsonfile)
 
@@ -314,6 +315,17 @@ class book_item():
             the path of the book directory
         '''
         self.__change_tag("noteLocation", os.path.expanduser(os.path.expandvars(noteDir)))
+
+    def update_date_added(self, dateStr):
+        '''
+        update the dateAdded tag with dateStr
+
+        Parameters
+        ----------
+        dateStr : str
+            the isoformat date string
+        '''
+        self.__change_tag("dateAdded", dateStr)
 
     def update_log(self):
         '''

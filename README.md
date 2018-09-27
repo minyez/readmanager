@@ -1,5 +1,8 @@
 # Reading Manager
 
+[![Build Status](https://travis-ci.org/minyez/readmanager.png?branch=master)](https://travis-ci.org/minyez/readmanager)
+
+
 ## Motivation
 
 This is a simple manager for the personal reading, especially for books and note-taking.
