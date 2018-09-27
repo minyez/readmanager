@@ -7,6 +7,6 @@ mkdir JSON note
 export PATH="$rmd:$PYTHONPATH"
 echo "{\n  \"dbJSON\": \"-/\",\n  \"dbNote\": \"-/\"\n}" > $READMANA_CONFIG
 cd test/
-python test.py
+python3 test.py
 cd ..
-python readmana -c
+python3 readmana -c
