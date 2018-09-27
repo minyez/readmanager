@@ -100,7 +100,10 @@ def flush_screen():
     '''
     flush the screen
     '''
-    os.system('clear')
+    if sys.platform.lower() == "windows":
+        os.system('cls')
+    else:
+        os.system('clear')
 
 # ===========================================================
 # TODO open utilities for linux and windows
@@ -228,8 +231,8 @@ def create_new(bm):
     __title = input("Title: ").strip()
     __pageTotal = input("Total #pages: ").strip()
     # noteType 
-    #  
     # timeLastMod
+    newBookItem.update_last_mod()
     # dateAdded
     # datePlan
     # update log
