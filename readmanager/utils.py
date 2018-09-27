@@ -139,6 +139,8 @@ def open_book(bm, iBI):
             __pageNew = input("    %d --> (max %d)" % (book.pageCurrent, book.pageTotal))
             try:
                 __pageNew = int(__pageNew.split()[0])
+                if __pageNew > book.pageTotal or __pageNew < 0:
+                    continue
                 break
             except ValueError:
                 pass
@@ -196,10 +198,11 @@ def modify(bm):
     Modify an book item
     '''
     assert isinstance(bm, manager)
+    return
     # input n, tag, newValue
     n, tag, newValue = input("Type (#, tag, newValue)")
     iBI = n - 1
-    bm.change_tag_book(iBI, tag, newValue)
+    #bm.change_tag_book(iBI, tag, newValue)
 
 # TODO create_new
 def create_new(bm):
@@ -224,7 +227,8 @@ def create_new(bm):
     __author = input("Author: ").strip()
     __title = input("Title: ").strip()
     __pageTotal = input("Total #pages: ").strip()
-    # noteType create new
+    # noteType 
+    #  
     # timeLastMod
     # dateAdded
     # datePlan

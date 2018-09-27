@@ -159,16 +159,83 @@ class book_item():
 
         return progCurrent, progPlan
 
+    def __change_tag(self, tag, newValue):
+        '''
+        Change a non-log tag.
+        The tag should exist in the __tagDict,
+        otherwise __add_tag method should be used instead
+        
+        Parameters
+        ----------
+        tag : str
+        value : int, str, list, dict
+        '''
+        assert tag != "log"
+        assert self.__check_tag_exist(tag)
+        oldValue = self.__tagDict[tag]
+        self.__tagDict.update({tag: newValue})
+        if newValue != oldValue:
+            self.__fMod = True
+            self.__update_public_attr()
+            self.update_last_mod()
+
+    def __add_tag(self, tag, value):
+        '''
+        Add new tag to book_item
+        
+        Parameters
+        ----------
+        tag : str
+            the tag to add
+        value : int, str, list, dict
+            the value of the new tag
+        '''
+        assert not self.__check_tag_exist(tag)
+        self.__tagDict.update({tag: value})
+        self.__fMod = True
+        self.update_last_mod()
+
+    def __check_tag_exist(self, tag):
+        '''
+        check if a tag already exists in the __tagDict
+        
+        Parameters
+        ----------
+        tag : str
+        
+        Returns
+        -------
+        bool : True if the tag exists, False otherwise
+        '''
+        if tag in self.__tagDict:
+            return True
+        return False
+
     # public methods
+    def get_tag(self, tag):
+        '''
+        Get the value of a particular tag
+        
+        Parameters
+        ----------
+        tag : str
+            the tag name to extract
+        
+        Returns
+        -------
+        int or str or list or dict : the value of the tag if it exists, otherwise None
+        '''
+        return self.__tagDict.get(tag, None)
+    
     def get_title(self, short=False):
         '''
         Return the title or short title of the book.
-
+        
         Parameters
         ----------
         short : bool
             if true, the short title will be returned, if available.
-
+        
         Returns
         -------
         str : title or short title of book
@@ -180,6 +247,10 @@ class book_item():
     def get_progress(self):
         '''
         Return the reading progress of the book in a percentage
+
+        Returns
+        -------
+        int, int : current and plan progress
         '''
         progCurrent, progPlan = self.__calculate_progress()
         return progCurrent, progPlan
@@ -199,88 +270,50 @@ class book_item():
             pathExt = pathExt[1:]
         return pathExt.lower()
 
-    def check_tag_exist(self, tag):
-        '''
-        check if a tag already exists in the __tagDict
-
-        Parameters
-        ----------
-        tag : str
-
-        Returns
-        -------
-        bool : True if the tag exists, False otherwise
-        '''
-        if tag in self.__tagDict:
-            return True
-        return False
-
-    def get_tag(self, tag):
-        '''
-        get the value of a particular tag
-        
-        Parameters
-        ----------
-        tag : str
-            the tag name to extract
-        
-        Returns
-        -------
-        int or str or list or dict : the value of the tag if it exists, otherwise None
-        '''
-        return self.__tagDict.get(tag, None)
-    
-    def change_tag(self, tag, newValue):
-        '''
-        Change a non-log tag. The tag should exist in the __tagDict,
-        otherwise add_tag method should be used instead
-
-        Parameters
-        ----------
-        tag : str
-        value : int, str, list, dict
-        '''
-        assert tag != "log"
-        assert self.check_tag_exist(tag)
-        oldValue = self.__tagDict[tag]
-        self.__tagDict.update({tag: newValue})
-        if newValue != oldValue:
-            self.__fMod = True
-            self.__update_public_attr()
-
     def update_last_read(self):
         '''
         Update timeLastRead
         '''
-        self.change_tag("timeLastRead", time.strftime(self.__formatTime))
+        self.__change_tag("timeLastRead", time.strftime(self.__formatTime))
 
     def update_last_mod(self):
         '''
         Update timeLastRead
         '''
-        self.change_tag("timeLastMod", time.strftime(self.__formatTime))
+        self.__change_tag("timeLastMod", time.strftime(self.__formatTime))
 
     def update_current_page(self, pageNew):
         '''
         Update current page
-        '''
-        assert 0 <= pageNew <= self.pageTotal
-        self.change_tag("pageCurrent", pageNew)
-
-    def add_tag(self, tag, value):
-        '''
-        Add new tag to book_item
-
+        
         Parameters
         ----------
-        tag : str
-            the tag to add
-        value : int, str, list, dict
-            the value of the new tag
+        pageNew : int
         '''
-        assert not self.check_tag_exist(tag)
-        self.__tagDict.update({tag: value})
-        self.__fMod = True
+        assert 0 <= pageNew <= self.pageTotal
+        self.__change_tag("pageCurrent", pageNew)
+
+    def update_source_path(self, sourcePath):
+        '''
+        Update the path of loca book source
+        
+        Parameters
+        ----------
+        sourcePath : str
+            the path of the loca book source file
+        '''
+        self.__change_tag("bookLocalSource", os.path.expanduser(os.path.expandvars(sourcePath)))
+
+    def update_note_dir(self, noteDir):
+        '''
+        Update the directory of book note directory
+        
+        Parameters
+        ----------
+        noteDir : str
+            the path of the book directory
+        '''
+        self.__change_tag("noteLocation", os.path.expanduser(os.path.expandvars(noteDir)))
 
     def update_log(self):
         '''
@@ -291,22 +324,22 @@ class book_item():
         # hard to tell if the log is really updated. Let's say it is
         self.__fMod = True
 
-    def write_json(self, jsonout):
-        '''
-        write the book item as a json file
-        
-        Parameters
-        ----------
-        jsonout : str
-            the file name of JSON output
-        '''
-        self.__dump_json(jsonout)
+    #def write_json(self, jsonout):
+    #    '''
+    #    write the book item as a json file
+    #    
+    #    Parameters
+    #    ----------
+    #    jsonout : str
+    #        the file name of JSON output
+    #    '''
+    #    self.__dump_json(jsonout)
 
     def update_json(self, overwrite=False):
         '''
         Update the json file with current __tagDict
         only when the __tagDict has been modified
-
+        
         Parameters
         ----------
         overwrite : bool

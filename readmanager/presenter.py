@@ -19,11 +19,11 @@ class presenter:
     __lenIndex = 3
     __lenTitle = 64
     __lenAuthor = 48
-    __lenProgBar = 102
-    __lenProg = 3
-    __lenPageTot = 5
+    __lenPageTot = 4
     __lenNoteMark = 1
     __lenSourceMark = 1
+    __lenProgBar = 102
+    __lenProg = 3
   
     __use256 = False
     # use curses to check if 256 term
@@ -37,19 +37,23 @@ class presenter:
 
     __colorHead = '\033[30;47m'
     __colorItem = '\033[0m'
-    
+    __colorEnd = '\033[0m'
+   
+    # Format here
+    # colorStart  index author title pageTotal noteState sourceState progBar prog colorEnd
+    # 1           2     3      3     2         2         2           2       2    1
     __formatItem = "%s%-*s %-*.*s %-*.*s %*s %-*s %-*s %-*s %*s%s"
     __head = __formatItem % (\
             __colorHead, \
             __lenIndex, "#", \
             __lenAuthor, __lenAuthor, "Author", \
             __lenTitle, __lenTitle, "Title", \
-            __lenPageTot, "Pages", \
+            __lenPageTot, "Page", \
             __lenNoteMark, "N", \
             __lenSourceMark, "S", \
             __lenProgBar, "Progress", \
             __lenProg, "%", \
-            '\033[0m', \
+            __colorEnd, \
             )
 
     def __init__(self, bookmanager):
@@ -84,11 +88,11 @@ class presenter:
         # and rebuild the presenter
         if self.__nBooks != len(self.__manager):
             self.__build()
-        print("=" * (len(self.__head) - len(self.__colorHead) - len('\033[0m')))
+        print("=" * (len(self.__head) - len(self.__colorHead) - len(self.__colorEnd)))
         print(self.__head)
-        for i in range(self.__nBooks):
-            self.print_item_status(i)
-        print("=" * (len(self.__head) - len(self.__colorHead) - len('\033[0m')))
+        for iBI in range(self.__nBooks):
+            self.print_item_status(iBI)
+        print("=" * (len(self.__head) - len(self.__colorHead) - len(self.__colorEnd)))
 
     def print_item_status(self, iBI):
         '''
@@ -111,7 +115,7 @@ class presenter:
             self.__lenProgBar, \
             get_prog_barstr(self.__progress[iBI], self.__lenProgBar, self.__use256), \
             self.__lenProg, self.__progress[iBI][0], \
-            '\033[0m', \
+            self.__colorEnd, \
             ))
 
 def get_file_state_marker(fileState):

@@ -115,21 +115,21 @@ class manager():
         for bi in self.books:
             bi.update_json()
 
-    def change_book_tag(self, iBI, tag, newValue):
-        '''
-        change tag of the book_item with index i by newValue
-        
-        Parameters
-        ----------
-        iBI : int
-            the index of book_item in self.books
-        tag : str
-            the name to tag to change
-        newValue : int or str
-            the new value to adopt in tag
-        '''
-        assert iBI in range(len(self.books))
-        self.books[iBI].change_tag(tag, newValue)
+    #def change_book_tag(self, iBI, tag, newValue):
+    #    '''
+    #    change tag of the book_item with index i by newValue
+    #    
+    #    Parameters
+    #    ----------
+    #    iBI : int
+    #        the index of book_item in self.books
+    #    tag : str
+    #        the name to tag to change
+    #    newValue : int or str
+    #        the new value to adopt in tag
+    #    '''
+    #    assert iBI in range(len(self.books))
+    #    self.books[iBI].change_tag(tag, newValue)
 
     def refresh(self):
         '''
