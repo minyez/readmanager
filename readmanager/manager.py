@@ -115,22 +115,6 @@ class manager():
         for bi in self.books:
             bi.update_json()
 
-    #def change_book_tag(self, iBI, tag, newValue):
-    #    '''
-    #    change tag of the book_item with index i by newValue
-    #    
-    #    Parameters
-    #    ----------
-    #    iBI : int
-    #        the index of book_item in self.books
-    #    tag : str
-    #        the name to tag to change
-    #    newValue : int or str
-    #        the new value to adopt in tag
-    #    '''
-    #    assert iBI in range(len(self.books))
-    #    self.books[iBI].change_tag(tag, newValue)
-
     def refresh(self):
         '''
         Refresh the manager
@@ -143,12 +127,12 @@ class manager():
         '''
         Get the values of a particular tag from all book_item by get_tag method
         See book_item class for more information
-
+     
         Parameters
         ----------
         tag : str
             the name of the tag
-
+     
         Returns
         -------
         list : values of the tag from all book_item.
@@ -168,20 +152,20 @@ class manager():
         Parameters
         ----------
         iBI : int
-            index of book item
+            index of book item. Negative value allowed.
         
         Returns
         -------
         None : if the book item does not have note
         otherwise str : the path of note
         '''
-        assert iBI in range(len(self.books))
+        assert iBI < len(self.books)
         noteLoc = self.books[iBI].get_tag("noteLocation")
         noteType = self.books[iBI].get_tag("noteType")
-
+     
         if noteLoc is None or noteType is None:
             return None
-
+     
         notePrefix = os.path.basename(noteLoc)
         notePath = os.path.join(os.path.expanduser(noteLoc), notePrefix)
         notePath = notePath + "." + noteType
@@ -198,19 +182,18 @@ class manager():
         
         Returns
         -------
-        None/False/True, None/False/True : 
+        None/False/True, None/False/True : note state, source state
             None if path not set, True for file found, otherwise False
         '''
        
         # note, source file
         state = [None, None]
-        path = [self.books[iBI].get_source(), self.get_note_path(iBI)]
-
+        path = [self.get_note_path(iBI), self.books[iBI].get_source()]
+     
         for i in range(2):
             if path[i] is None:
                 continue
             state[i] = os.path.isfile(path[i])
-
+        
         return tuple(state)
-
 

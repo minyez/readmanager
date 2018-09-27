@@ -57,6 +57,7 @@ class book_item():
     __tagsMust = tagsMust
     __tagsOptl = tagsOptl
     __formatTime = "%Y-%m-%d %X"
+    noteSupportType = ["md", "tex", "txt", "docx"]
 
     # private methods
     def __init__(self, jsonfile, create_new=False):
@@ -78,6 +79,7 @@ class book_item():
             flag to create a new #empty json file by __dump_json
             #if set true, the original JSON will be overwritten
         '''
+        assert os.path.splitext(jsonfile)[1] == '.json'
         if create_new:
             # deal with duplicate outside
             assert not os.path.isfile(jsonfile)
@@ -96,6 +98,7 @@ class book_item():
         self.title = self.__tagDict["title"]
         self.pageTotal = self.__tagDict["pageTotal"]
         self.pageCurrent = self.__tagDict["pageCurrent"]
+        self.noteLocation = self.__tagDict["noteLocation"]
 
     def __check_tagsMust(self):
         '''
@@ -227,6 +230,26 @@ class book_item():
         int or str or list or dict : the value of the tag if it exists, otherwise None
         '''
         return self.__tagDict.get(tag, None)
+
+    def update_author(self, newAuthor):
+        '''
+        Update book author with newAuthor
+
+        Parameters
+        ----------
+        newAuthor : str
+        '''
+        self.__change_tag("author", newAuthor)
+
+    def update_title(self, newTitle):
+        '''
+        Update book title with newTitle
+
+        Parameters
+        ----------
+        newTitle : str
+        '''
+        self.__change_tag("title", newTitle)
     
     def get_title(self, short=False):
         '''
@@ -251,7 +274,7 @@ class book_item():
 
         Returns
         -------
-        int, int : current and plan progress
+        int, int : current and plan progress of the book
         '''
         progCurrent, progPlan = self.__calculate_progress()
         return progCurrent, progPlan
@@ -273,26 +296,34 @@ class book_item():
 
     def update_last_read(self):
         '''
-        Update timeLastRead
+        Update timeLastRead with current time
         '''
         self.__change_tag("timeLastRead", time.strftime(self.__formatTime))
 
     def update_last_mod(self):
         '''
-        Update timeLastRead
+        Update timeLastRead with current time
         '''
         self.__change_tag("timeLastMod", time.strftime(self.__formatTime))
 
-    def update_current_page(self, pageNew):
+    def update_page(self, pageType, pageNew):
         '''
-        Update current page
+        Update page of type specified by pageType with pageNew
         
         Parameters
         ----------
+        pageType : str
+            the type of page, either "current" or "total"
         pageNew : int
+            the new value of page to set
         '''
-        assert 0 <= pageNew <= self.pageTotal
-        self.__change_tag("pageCurrent", pageNew)
+        __pageType = pageType.lower()
+        if __pageType == "current":
+            assert 0 <= pageNew <= self.pageTotal
+            self.__change_tag("pageCurrent", pageNew)
+        elif __pageType == "total":
+            assert isinstance(pageNew, int)
+            self.__change_tag("pageTotal", pageNew)
 
     def update_source_path(self, sourcePath):
         '''
@@ -316,16 +347,47 @@ class book_item():
         '''
         self.__change_tag("noteLocation", os.path.expanduser(os.path.expandvars(noteDir)))
 
-    def update_date_added(self, dateStr):
+    def update_note_type(self, noteType):
         '''
-        update the dateAdded tag with dateStr
-
+        Update the file type of note
+        
         Parameters
         ----------
+        noteType : str
+            the type of the note
+        '''
+        __noteType = noteType.lower()
+        if __noteType in self.noteSupportType:
+            self.__change_tag("noteType", __noteType)
+
+    def update_date(self, dateType, dateStr=None):
+        '''
+        update the date tag specified by dateType with dateStr
+     
+        Parameters
+        ----------
+        dateType : str, "added" or "plan"
+            the tag of date to change
         dateStr : str
             the isoformat date string
         '''
-        self.__change_tag("dateAdded", dateStr)
+        __dictDateType = {"added": "dateAdded", "plan": "datePlan"}
+        __dateType = dateType.lower()
+        # use today as default date
+        __dateStr = str(dt.date.today())
+        if dateStr:
+            __dateStr = dateStr
+            # dateStr is needed when dateType is "plan"
+        try:
+            __date = dt.date.fromisoformat(__dateStr)
+            self.__change_tag(__dictDateType[__dateType], __dateStr)
+        except ValueError:
+            if __dateType == "plan":
+                pass
+            else:
+                raise ValueError("isoformat yyyy-mm-dd should be entered")
+        except KeyError:
+            raise KeyError("unsupported dateType: only '%s'" % "', '".join(__dictDateType.keys()))
 
     def update_log(self):
         '''

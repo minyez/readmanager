@@ -7,3 +7,4 @@ from readmanager import bookitem
 from readmanager import manager
 from readmanager import presenter
 from readmanager import utils
+from readmanager import opener

@@ -2,18 +2,12 @@
 # -*- coding: utf-8 -*-
 '''
 Utilities used in the main program readmana
-
-TODO
-----
-1. Open the note and pdf book from applications
-2. Create/Modify book item
 '''
 
 from __future__ import print_function, absolute_import
 import os
 import sys
 import json
-import subprocess as sp
 from readmanager.presenter import presenter
 from readmanager.manager import manager
 from readmanager.bookitem import book_item
@@ -105,142 +99,247 @@ def flush_screen():
     else:
         os.system('clear')
 
-# ===========================================================
-# TODO open utilities for linux and windows
-def open_book(bm, iBI):
+def ask_for_sure(tipStr, verbose=True):
     '''
-    Open the book and note with the default opener in subprocess
-    and ask for page and log update
-    Note: currently support macOS only
+    Ask the user for ensuring some action, namely "tipStr (y/N) "
 
     Parameters
     ----------
-    bm : manager instance
-    iBI : int
-        the index of the book item in bm
+    tipStr : str
+        the string of tip that is shown to the use
+    verbose : bool
+        flag for asking. Return True without condition if it is False
+
+    Returns
+    -------
+    bool : 
+        When verbose, True if get "y" or "yes", False otherwise
+        When not verbose, always True
     '''
-    assert isinstance(bm, manager)
-    assert iBI in range(len(bm))
-    book = bm.books[iBI]
-    stateNote, stateFile = bm.get_note_source_state(iBI)
-    pathNote, pathFile = bm.get_note_path(iBI), bm.books[iBI].get_source()
-    extNote = book.get_tag("noteType").lower()
-    extFile = book.get_source_ext()
-
-    openSystem = {"darwin": __open_book_darwin, }
-    platform = sys.platform.lower()
-
-    print("--  Try to open note from: %s" % pathNote)
-    print("--  Try to open file from: %s" % pathFile)
-    if platform in openSystem:
-        openSystem[platform](bm, (stateNote, stateFile), (pathNote, pathFile), (extNote, extFile))
-    else:
-        print("--  Open utility for %s is not supported. Please open manually") 
-    __fUpdate = input("--  Update page? (y/N)").strip().lower()
-    if __fUpdate in ["y", "yes"]:
-        while True:
-            __pageNew = input("    %d --> (max %d)" % (book.pageCurrent, book.pageTotal))
-            try:
-                __pageNew = int(__pageNew.split()[0])
-                if __pageNew > book.pageTotal or __pageNew < 0:
-                    continue
-                break
-            except ValueError:
-                pass
-            except IndexError:
-                pass
-        book.update_current_page(__pageNew)
-        book.update_last_read()
-        book.update_log()
-        book.update_json()
-        print("--  Log, JSON updated :)")
-    else:
-        print("--  Maybe next time :)")
-
-def __open_book_darwin(bm, states, paths, exts):
-    '''
-    Open the book and note with the default opener in subprocess for macOS
-
-    Parameters
-    ----------
-    bm : manager instance
-    states : 2-member tuple of bool or None
-        states of note and source file
-    paths: 2-member tuple of str
-        paths of note and source file
-    exts : 2-member tuple of str
-        extensions of note and source file
-    '''
-
-    stateNote, stateFile = states
-    pathNote, pathFile = paths
-    extNote, extFile = exts
-
-    openerNote = ["open", pathNote]
-    openerFile = ["open", pathFile]
-    if extFile == '':
-        # opener with Textedit for file without extension
-        openerFile.append("-e")
-    if extNote in bm.opener:
-        if bm.opener[extNote] is not None:
-            openerNote.extend(["-a", bm.opener[extNote]])
-    if extFile in bm.opener:
-        if bm.opener[extFile] is not None:
-            openerFile.extend(["-a", bm.opener[extFile]])
-
-    # start opening by calling subprocess
-    if stateNote:
-        noteProc = sp.Popen(openerNote)
-    if stateFile:
-        fileProc = sp.Popen(openerFile)
+    if verbose:
+        flag = input("%s (y/N) " % tipStr).strip().lower()
+        if flag in ["y", "yes"]:
+            return True
+        return False
+    return True
 
 # ===========================================================
-# TODO Manager utilities
 def modify(bm):
     '''
     Modify an book item
     '''
     assert isinstance(bm, manager)
-    return
-    # input n, tag, newValue
-    n, tag, newValue = input("Type (#, tag, newValue)")
+    n = input("--  Which book to modify (#): ")
+    try:
+        n = int(n)
+    except ValueError:
+        print("    Invalid input. Break out.")
+        return
     iBI = n - 1
-    #bm.change_tag_book(iBI, tag, newValue)
 
-# TODO create_new
+    __dictOption = { \
+            "nd": __modify_note_dir, \
+            "nt": __modify_note_type, \
+            "pd": __modify_plan_date, \
+            "tp": __modify_total_page, \
+            "sp": __modify_source_path, \
+            "a": __modify_author, \
+            "t": __modify_title, \
+            }
+    __book = bm[iBI]
+    __helpStr = ''
+    for key in sorted(__dictOption.keys()):
+        __helpStr += "    %2s : %s\n" % (key, __dictOption[key].__doc__.split("\n")[1].strip())
+
+    __selection = input(__helpStr + "--  select: ").strip()
+    try: 
+        __dictOption[__selection](__book)
+    except KeyError:
+        print("    Invalid input. Break out.")
+        return
+
+# ===========================================================
+# tag modify utilities
+def __modify_note_dir(BI):
+    '''
+    modify the note directory of book
+
+    Paramters
+    ---------
+    BI : book_item instance
+    '''
+    jsonName = os.path.basename(BI.filepath)[:-5]
+    noteDirStr = input("    Note directory (enter for %s): " % jsonName).strip()
+    if noteDirStr in ['', None]:
+        __noteDirStr = "-/" + jsonName
+    else:
+        __noteDirStr = noteDirStr
+    BI.update_note_dir(noteDirStr)
+
+def __modify_note_type(BI):
+    '''
+    modify the note type of book
+
+    Paramters
+    ---------
+    BI : book_item instance
+    '''
+    __noteType = input("    Note type (%s):" % ", ".join(BI.noteSupportType)).strip()
+    BI.update_note_type(__noteType)
+
+def __modify_plan_date(BI):
+    '''
+    modify the plan date of book reading
+
+    Paramters
+    ---------
+    BI : book_item instance
+    '''
+    __datePlan = input("    Plan date (yyyy-mm-dd, enter to skip): ").strip()
+    BI.update_date("plan", __datePlan)
+
+def __modify_total_page(BI):
+    '''
+    modify the number of total pages of the book
+
+    Paramters
+    ---------
+    BI : book_item instance
+    '''
+    while True:
+        __pageTotal = input("    Total #pages: ").strip()
+        try:
+            BI.update_page("total", int(__pageTotal))
+            break
+        except ValueError:
+            print("    Bad input. Retry.")
+
+def __modify_source_path(BI):
+    '''
+    modify the path of the book source file
+
+    Paramters
+    ---------
+    BI : book_item instance
+    '''
+    __sourcePath = input("    Book file path: ").strip()
+    BI.update_source_path(__sourcePath)
+
+def __modify_author(BI):
+    '''
+    modify the author of the book
+
+    Paramters
+    ---------
+    BI : book_item instance
+    '''
+    __author = input("    Author: ").strip()
+    BI.update_author(__author)
+
+def __modify_title(BI):
+    '''
+    modify the title of the book
+
+    Paramters
+    ---------
+    BI : book_item instance
+    '''
+    __title = input("    Title: ").strip()
+    BI.update_title(__title)
+
+# ===========================================================
 def create_new(bm):
     '''
     create a new book item
+
+    Paramters
+    ---------
+    bm : manager instance
     '''
     assert isinstance(bm, manager)
-    return
-   
+  
+    newJSONPath = __generate_new_json_path(bm)
+    newBI = book_item(newJSONPath, create_new=True)
+    # update tags
+    __modify_author(newBI)
+    __modify_title(newBI)
+    __modify_total_page(newBI)
+    __modify_note_dir(newBI)
+    __modify_note_type(newBI)
+    __modify_source_path(newBI)
+    newBI.update_last_mod()
+    newBI.update_date("added")
+    __modify_plan_date(newBI)
+    newBI.update_log()
+    bm.add_new_book(newBI)
+    # Ask for saving
+    __fSave = ask_for_sure("--  Save to json?")
+    if __fSave:
+        newBI.update_json()
+        print("--  Saved new json at %s " % newBI.filepath)
+        __fNewNote = create_new_note(bm, -1, False)
+        if __fNewNote:
+            print("--  Create new note at %s " % bm.get_note_path(-1))
+
+def create_new_note(bm, iBI, verbose=True):
+    '''
+    Creating new note for a book item
+
+    Paramters
+    ---------
+    bm : manager instance
+    iBI : int
+        the index of book item for note creation
+    '''
+    noteState = bm.get_note_source_state(iBI)[0]
+    if noteState is None:
+        if verbose:
+            print("    Need to first specify the note directory and type.")
+        return False
+
+    notePath = bm.get_note_path(iBI)
+    if noteState:
+        if verbose:
+            print("    Note exists: %s" % notePath)
+            return False
+    else:
+        if verbose:
+            print("    Note not found: %s" % notePath)
+            return False
+        flag = ask_for_sure("    Create an empty new?", verbose=verbose)
+        if flag:
+            try:
+                os.makedirs(os.path.dirname(notePath))
+            except FileExistsError:
+                pass
+            with open(notePath, 'w') as hFileOut:
+                pass
+            return True
+    return False
+
+def __generate_new_json_path(bm):
+    '''
+    Generate path for a new json file with name from input. Check duplicate
+
+    Paramters
+    ---------
+    bm : manager instance
+    '''
     while True:
-        newJSONName = input("Enter filename of new item (wo .json): ").strip()
+        newJSONName = input("--  Enter filename of new item (wo .json): ").strip()
         if newJSONName.lower().endswith(".json"):
             newJSONName = newJSONName[:-5]
         newJSONPath = os.path.join(bm.dbJSON, newJSONName) + ".json"
         # check duplicate
         if os.path.isfile(newJSONPath):
-            print("Found json with the same name in database. Retry.")
+            print("    Found json with the same name in database. Retry.")
         else:
             break
-    newBookItem = book_item(newJSONPath, create_new=True)
-    # update tags
-    __author = input("Author: ").strip()
-    __title = input("Title: ").strip()
-    __pageTotal = input("Total #pages: ").strip()
-    # noteType 
-    # timeLastMod
-    newBookItem.update_last_mod()
-    # dateAdded
-    # datePlan
-    # update log
-    bm.add_new_book(newBookItem)
+    return newJSONPath
 
 # ===========================================================
-# TODO Presenter utilities
-def show_item(pre):
+# TODO show_item_details
+def show_item_details(pre):
     '''
     Show the a book item
     '''
@@ -254,7 +353,7 @@ def print_pre(pre):
     pre.show()
 
 # ===========================================================
-# TODO Manager & Presenter utilities
+# TODO find_item
 def find_item(bm, pre):
     '''
     Find a particular item

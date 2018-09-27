@@ -6,7 +6,7 @@ Main stream of readmanager.
 from __future__ import print_function, absolute_import
 from argparse import ArgumentParser
 import sys
-from readmanager import utils
+from readmanager import utils, opener
 from readmanager.manager import manager
 from readmanager.presenter import presenter
 
@@ -16,9 +16,9 @@ description = __doc__
 parser = ArgumentParser(description=description)
 mode = parser.add_mutually_exclusive_group()
 mode.add_argument("-c", dest='check', action="store_true", \
-                    help="Check-mode")
+        help="Check-mode: check book items")
 mode.add_argument("-r", dest='read', action="store_true", \
-                    help="Read-mode")
+        help="Read-mode: read books without access to modify book items")
 params = parser.parse_args()
 
 # ===================================================================
@@ -44,7 +44,7 @@ dictOptionsMana = { \
         }
 dictOptionsPre = { \
         "p": utils.print_pre, \
-        "i": utils.show_item, \
+        "i": utils.show_item_details, \
         }
 dictOptionsManaPre = { \
         "f": utils.find_item, \
@@ -54,7 +54,7 @@ dictOptionsManaPre = { \
 # Set help string according to Options dictionary
 helpStrRead = 'Menu:\n    #: open No.# book and note (if available);\n'
 helpStrSQ = '%5s: Save & quit;\n' % {True:"0", False:"0/s"}.get(params.read)
-helpStrMana = '    m: Modify item (NI);\n    c: Create new item (NI);\n'
+helpStrMana = '    m: Modify item;\n    c: Create new item;\n'
 helpStrPre = '    p: print Presenter;\n    i: print Item details (NI);\n'
 helpStrManaPre = '    f: Find item (NI);\n'
 helpStrExit = '    other letters or <0: quit;\n'
@@ -83,7 +83,7 @@ while True:
         iBI = int(option) - 1
         if iBI in range(len(bookmanager)):
             fRetry = False
-            utils.open_book(bookmanager, iBI)
+            opener.open_book(bookmanager, iBI)
         elif iBI >= len(bookmanager):
             print("Invalid book #. Retry. ", end="")
             fRetry = True
