@@ -74,11 +74,11 @@ class presenter:
         self.__progress = self.__manager.get_progress_all()
         self.__pages = self.__manager.get_tags("pageTotal")
 
-    #def rebuild(self):
-    #    '''
-    #    Rebuild the items to show, when the manager has been refreshed
-    #    '''
-    #    self.__build()
+    def rebuild(self):
+        '''
+        Rebuild the items to show, when the manager has been refreshed
+        '''
+        self.__build()
 
     def show(self):
         '''

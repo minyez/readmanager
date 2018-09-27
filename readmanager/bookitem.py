@@ -334,7 +334,8 @@ class book_item():
         sourcePath : str
             the path of the loca book source file
         '''
-        self.__change_tag("bookLocalSource", os.path.expanduser(os.path.expandvars(sourcePath)))
+        if sourcePath != "":
+            self.__change_tag("bookLocalSource", os.path.expanduser(os.path.expandvars(sourcePath)))
 
     def update_note_dir(self, noteDir):
         '''

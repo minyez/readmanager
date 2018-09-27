@@ -54,3 +54,6 @@ To create JSON file for book item, the easiest way is to follow the instructions
 When creating, it will initialize all required keys/tags for the reading-manager to work properly.
 These keys/tags are human-readable for you to modify them manually, but can also be modified by functions in `readmana`.
 
+## TODO
+
+- [ ] compatibility of showing Chinese for presenter class

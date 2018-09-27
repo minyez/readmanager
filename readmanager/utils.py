@@ -162,7 +162,7 @@ def modify(bm):
 # tag modify utilities
 def __modify_note_dir(BI):
     '''
-    modify the note directory of book
+    modify the Note Directory of book
 
     Paramters
     ---------
@@ -170,11 +170,11 @@ def __modify_note_dir(BI):
     '''
     jsonName = os.path.basename(BI.filepath)[:-5]
     noteDirStr = input("    Note directory (enter for %s): " % jsonName).strip()
-    if noteDirStr in ['', None]:
+    if noteDirStr == '':
         __noteDirStr = "-/" + jsonName
     else:
         __noteDirStr = noteDirStr
-    BI.update_note_dir(noteDirStr)
+    BI.update_note_dir(__noteDirStr)
 
 def __modify_note_type(BI):
     '''
@@ -196,11 +196,12 @@ def __modify_plan_date(BI):
     BI : book_item instance
     '''
     __datePlan = input("    Plan date (yyyy-mm-dd, enter to skip): ").strip()
-    BI.update_date("plan", __datePlan)
+    if __datePlan != "":
+        BI.update_date("plan", __datePlan)
 
 def __modify_total_page(BI):
     '''
-    modify the number of total pages of the book
+    modify the number of Total Pages of the book
 
     Paramters
     ---------
@@ -216,18 +217,18 @@ def __modify_total_page(BI):
 
 def __modify_source_path(BI):
     '''
-    modify the path of the book source file
+    modify the Path of the local Source file of book
 
     Paramters
     ---------
     BI : book_item instance
     '''
-    __sourcePath = input("    Book file path: ").strip()
+    __sourcePath = input("    Local book file path (Enter if no e-source): ").strip()
     BI.update_source_path(__sourcePath)
 
 def __modify_author(BI):
     '''
-    modify the author of the book
+    modify the Author of the book
 
     Paramters
     ---------
@@ -238,7 +239,7 @@ def __modify_author(BI):
 
 def __modify_title(BI):
     '''
-    modify the title of the book
+    modify the Title of the book
 
     Paramters
     ---------
@@ -250,7 +251,7 @@ def __modify_title(BI):
 # ===========================================================
 def create_new(bm):
     '''
-    create a new book item
+    Create a new book item
 
     Paramters
     ---------
@@ -277,11 +278,11 @@ def create_new(bm):
     if __fSave:
         newBI.update_json()
         print("--  Saved new json at %s " % newBI.filepath)
-        __fNewNote = create_new_note(bm, -1, False)
+        __fNewNote = __create_new_note(bm, -1, False)
         if __fNewNote:
             print("--  Create new note at %s " % bm.get_note_path(-1))
 
-def create_new_note(bm, iBI, verbose=True):
+def __create_new_note(bm, iBI, verbose=True):
     '''
     Creating new note for a book item
 
@@ -341,22 +342,23 @@ def __generate_new_json_path(bm):
 # TODO show_item_details
 def show_item_details(pre):
     '''
-    Show the a book item
+    Show the a book item (TODO)
     '''
     assert isinstance(pre, presenter)
 
 def print_pre(pre):
     '''
-    Show presenter
+    show Presenter
     '''
     assert isinstance(pre, presenter)
+    pre.rebuild()
     pre.show()
 
 # ===========================================================
 # TODO find_item
 def find_item(bm, pre):
     '''
-    Find a particular item
+    Find a particular item (TODO)
     '''
     assert isinstance(bm, manager)
     assert isinstance(pre, presenter)
