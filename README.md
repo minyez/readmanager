@@ -16,7 +16,7 @@ Git clone `readmanager` to some local path `path/to/readmanager`
 ```
 $ git clone git@github.com:minyez/readmanager.git path/to/readmanager
 ```
-and add `path/to/readmanager` to your `PATH` environment variable.
+and add `path/to/readmanager` to your `PATH` and `PYTHONPATH` environment variables.
 
 ## Usage
 
@@ -46,6 +46,8 @@ The default `config.json` is
 }
 ```
 `dbJSON` and `dbNote` can be specified interactively when initializing the default `config.json`.
+Particularly, they can both be set as `"-/"` to make `dbJSON` and `dbNote` refer to `JSON` and `note` diretories
+in the same path as the configuration file.
 
 ## Book JSON example
 
