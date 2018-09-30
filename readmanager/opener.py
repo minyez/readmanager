@@ -46,12 +46,12 @@ def open_book(bm, iBI):
                                      (pathNote, pathFile), \
                                      (extNote, extFile))
     else:
-        print("--  Open utility for %s is not supported. Please open manually" % platform) 
-    #__fUpdate = input("--  Update page? (y/N)").strip().lower()
+        print("--  Open utility for %s is not supported. Please open manually." % platform) 
+     
     __fUpdate = ask_for_sure("--  Update page?")
     if __fUpdate:
         while True:
-            __pageNew = input("    %d --> (max %d)" % (book.pageCurrent, book.pageTotal))
+            __pageNew = input("    %d --> (max %d) " % (book.pageCurrent, book.pageTotal))
             try:
                 __pageNew = int(__pageNew.split()[0])
                 if __pageNew > book.pageTotal or __pageNew < 0:

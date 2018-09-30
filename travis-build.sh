@@ -7,4 +7,5 @@ echo "{\n  \"dbJSON\": \"-/\",\n  \"dbNote\": \"-/\"\n}" > $READMANA_CONFIG
 cd test/
 python test.py
 cd ..
+cat $READMANA_CONFIG
 python readmana -c

@@ -4,7 +4,8 @@ the presenter class is defined to show the reading and note progress of books
 '''
 
 from __future__ import print_function, absolute_import
-#import os
+import sys
+import subprocess as sp
 from readmanager.manager import manager
 try:
     import curses
@@ -15,15 +16,23 @@ class presenter:
     '''
     presenter class
     '''
-    # TODO get terminal widths and allocate proportionally for title, author and ProgBar
-    __lenIndex = 3
-    __lenTitle = 64
-    __lenAuthor = 48
-    __lenPageTot = 4
-    __lenNoteMark = 1
-    __lenSourceMark = 1
-    __lenProgBar = 102
-    __lenProg = 3
+    __lenIndex = 4
+    __lenPageTot = 5
+    __lenNoteMark = 2
+    __lenSourceMark = 2
+    __lenProg = 4
+    # get terminal widths, allocate proportionally for title, author and ProgBar
+    if sys.platform.lower() in ["linux", "darwin"]:
+        __rows, __cols = sp.check_output(['stty', 'size']).split()
+        __colsAvail = int(__cols) - \
+                __lenIndex - __lenPageTot - __lenNoteMark - __lenSourceMark -__lenProg
+        __lenTitle = int(__colsAvail * 0.33)
+        __lenAuthor = int(__colsAvail * 0.2)
+        __lenProgBar = __colsAvail - __lenTitle - __lenAuthor
+    else:
+        __lenTitle = 72
+        __lenAuthor = 40
+        __lenProgBar = 102
   
     __use256 = False
     # use curses to check if 256 term
@@ -39,10 +48,10 @@ class presenter:
     __colorItem = '\033[0m'
     __colorEnd = '\033[0m'
    
-    # Format here
+    # Format (number for arguments required
     # colorStart  index author title pageTotal noteState sourceState progBar prog colorEnd
     # 1           2     3      3     2         2         2           2       2    1
-    __formatItem = "%s%-*s %-*.*s %-*.*s %*s %-*s %-*s %-*s %*s%s"
+    __formatItem = "%s%-*s%-*.*s%-*.*s%-*s%-*s%-*s%-*s%*s%s"
     __head = __formatItem % (\
             __colorHead, \
             __lenIndex, "#", \
@@ -55,6 +64,7 @@ class presenter:
             __lenProg, "%", \
             __colorEnd, \
             )
+    __lenHead = len(__head) - len(__colorHead) - len(__colorEnd)
 
     def __init__(self, bookmanager):
         '''
@@ -88,27 +98,28 @@ class presenter:
         # and rebuild the presenter
         if self.__nBooks != len(self.__manager):
             self.__build()
-        print("=" * (len(self.__head) - len(self.__colorHead) - len(self.__colorEnd)))
+        print("=" * self.__lenHead)
         print(self.__head)
         for iBI in range(self.__nBooks):
             self.print_item_status(iBI)
-        print("=" * (len(self.__head) - len(self.__colorHead) - len(self.__colorEnd)))
+        print("=" * self.__lenHead)
 
     def print_item_status(self, iBI):
         '''
-        Print the status, i.e. index, author, title, note & source status, progress bar and progress
+        Print the status of a book item
 
         Parameters
         ----------
         iBI : int
             the index of item in self.__manager.books
         '''
+        __nSpaceSep = 4
         noteState, sourceState = self.__manager.get_note_source_state(iBI)
         print(self.__formatItem % (
             self.__colorItem, \
             self.__lenIndex, iBI + 1, \
-            self.__lenAuthor, self.__lenAuthor, self.__authors[iBI], \
-            self.__lenTitle, self.__lenTitle, self.__titles[iBI], \
+            self.__lenAuthor, self.__lenAuthor - __nSpaceSep, self.__authors[iBI], \
+            self.__lenTitle, self.__lenTitle - __nSpaceSep, self.__titles[iBI], \
             self.__lenPageTot, self.__pages[iBI], \
             self.__lenNoteMark, get_file_state_marker(noteState), \
             self.__lenSourceMark, get_file_state_marker(sourceState), \
@@ -157,6 +168,7 @@ def get_prog_barstr(prog, totalBarLen, use256=False):
     assert 0 <= prog[1] <= 100
     colorEnd = '\033[0m'
     colorPlan = '\033[34m'
+    __markerToRead = ' '
     
     # generate color gradient by __color_grad
     colorCurrent = __color_grad(prog[0], use256)
@@ -176,11 +188,11 @@ def get_prog_barstr(prog, totalBarLen, use256=False):
         colorSmall, colorBig = colorBig, colorSmall
         nSmall, nBig = nBig, nSmall
 
-    return "|%s%-*s%s%-*s%s%-*s|" % ( \
+    return "|%s%-*s%s%-*s%s%-.*s|" % ( \
             colorSmall, nSmall, "=" * nSmall, \
             colorBig, nBig - nSmall, "-" * (nBig - nSmall), \
             colorEnd, \
-            totalBarLen - 2 - nBig, "." * (totalBarLen - 2 - nBig) \
+            totalBarLen - 2 - nBig, __markerToRead * (totalBarLen - 2 - nBig) \
             )
 
 def __color_grad(prog, use256):

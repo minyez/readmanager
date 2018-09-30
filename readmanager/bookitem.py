@@ -289,7 +289,10 @@ class book_item():
         '''
         Return the extension name (lowercase) of the source file of the book
         '''
-        pathName, pathExt = os.path.splitext(self.__tagDict["bookLocalSource"])
+        try:
+            pathName, pathExt = os.path.splitext(self.__tagDict["bookLocalSource"])
+        except TypeError:
+            return None
         if len(pathExt) > 0:
             pathExt = pathExt[1:]
         return pathExt.lower()

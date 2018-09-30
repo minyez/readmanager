@@ -27,7 +27,8 @@ params = parser.parse_args()
 configFile = utils.get_config()
 bookmanager = manager(configFile)
 bookpre = presenter(bookmanager)
-utils.flush_screen()
+if not params.check:
+    utils.flush_screen()
 bookpre.show()
 
 # ===================================================================
@@ -51,7 +52,7 @@ dictOptionsManaPre = { \
         }
 
 # ===================================================================
-# Set help string according to Options dictionary
+# Set help string according to Options dictionaries
 helpStrRead = 'Menu:\n    #: open No.# book and note (if available);\n'
 helpStr0SQ = ''
 helpStrMana = ''
@@ -61,17 +62,17 @@ helpStrManaPre = ''
 if params.read:
     helpStr0SQ = '%5s: %s\n' % ("0", dictOptionsMana["s"].__doc__.split("\n")[1].strip())
 else:
-    for key in dictOptionsMana.keys():
+    for key in dictOptionsMana:
         __key = key
         if __key == "s":
             __key = "0/s"
-        helpStrMana += '%5s: %s\n' % (__key, dictOptionsMana[key].__doc__.split("\n")[1].strip())
-    for key in dictOptionsPre.keys():
-        helpStrPre += '%5s: %s\n' % (key, dictOptionsPre[key].__doc__.split("\n")[1].strip())
-    for key in dictOptionsManaPre.keys():
-        helpStrManaPre += '%5s: %s\n' % (key, dictOptionsManaPre[key].__doc__.split("\n")[1].strip())
+        helpStrMana += '%5s: %s\n' % (__key, utils.get_func_doc(dictOptionsMana[key]))
+    for key in dictOptionsPre:
+        helpStrPre += '%5s: %s\n' % (key, utils.get_func_doc(dictOptionsPre[key]))
+    for key in dictOptionsManaPre:
+        helpStrManaPre += '%5s: %s\n' % (key, utils.get_func_doc(dictOptionsManaPre[key]))
 
-helpStrExit = '    other letters or <0: quit;\n'
+helpStrExit = '    other letters or <0: quit without save;\n'
 helpStrPrompt = '--> '
 
 helpStr = helpStrRead + helpStr0SQ + \
@@ -101,6 +102,11 @@ while True:
         else:
             utils.exit_wo_save()
     except ValueError:
+        if option == '':
+            fRetry = True
+            continue
+        if option in ["exit", "q"]:
+            sys.exit(0)
         if params.read:
             utils.exit_wo_save()
         fRetry = False
@@ -111,8 +117,6 @@ while True:
             dictOptionsPre[option](bookpre)
         elif option in dictOptionsManaPre:
             dictOptionsManaPre[option](bookmanager, bookpre)
-        elif option == "exit":
-            sys.exit(0)
         else:
             utils.exit_wo_save()
 # ===================================================================

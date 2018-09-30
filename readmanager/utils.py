@@ -129,9 +129,11 @@ def modify(bm):
     Modify an book item
     '''
     assert isinstance(bm, manager)
-    n = input("--  Which book to modify (#): ")
+    n = input("--  Which book to modify (#, 0 to return): ")
     try:
         n = int(n)
+        if n == 0:
+            return
     except ValueError:
         print("    Invalid input. Break out.")
         return
@@ -149,7 +151,7 @@ def modify(bm):
     __book = bm[iBI]
     __helpStr = ''
     for key in sorted(__dictOption.keys()):
-        __helpStr += "    %2s : %s\n" % (key, __dictOption[key].__doc__.split("\n")[1].strip())
+        __helpStr += "    %2s : %s\n" % (key, get_func_doc(__dictOption[key]))
 
     __selection = input(__helpStr + "--  select: ").strip()
     try: 
@@ -248,6 +250,28 @@ def __modify_title(BI):
     __title = input("    Title: ").strip()
     BI.update_title(__title)
 
+def get_func_doc(func):
+    '''
+    get the main doc line of a function
+
+    Parameters
+    ----------
+    modFunc : function object
+
+    Returns
+    -------
+    str : the main doc line of func.
+        "N/A" if doc string is not set
+    '''
+    try:
+        docSplit = func.__doc__.split("\n")
+    except AttributeError:
+        return "N/A"
+    docSplit = [s.strip() for s in docSplit]
+    if docSplit[0] == '':
+        return docSplit[1]
+    return docSplit[0]
+
 # ===========================================================
 def create_new(bm):
     '''
@@ -291,6 +315,7 @@ def __create_new_note(bm, iBI, verbose=True):
     bm : manager instance
     iBI : int
         the index of book item for note creation
+    verbose : bool
     '''
     noteState = bm.get_note_source_state(iBI)[0]
     if noteState is None:
@@ -342,13 +367,13 @@ def __generate_new_json_path(bm):
 # TODO show_item_details
 def show_item_details(pre):
     '''
-    Show the a book item (TODO)
+    Show the details of a book item (TODO)
     '''
     assert isinstance(pre, presenter)
 
 def print_pre(pre):
     '''
-    show Presenter
+    show the Presenter
     '''
     assert isinstance(pre, presenter)
     pre.rebuild()
