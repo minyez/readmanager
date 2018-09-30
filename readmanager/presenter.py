@@ -7,6 +7,7 @@ from __future__ import print_function, absolute_import
 import sys
 import subprocess as sp
 from readmanager.manager import manager
+#from readmanager.bookitem import book_item
 try:
     import curses
 except ImportError:
@@ -79,10 +80,10 @@ class presenter:
         Build the items to show
         '''
         self.__nBooks = len(self.__manager)
-        self.__titles = self.__manager.get_tags("title")
-        self.__authors = self.__manager.get_tags("author")
+        self.__titles = self.__manager.get_keys("title")
+        self.__authors = self.__manager.get_keys("author")
         self.__progress = self.__manager.get_progress_all()
-        self.__pages = self.__manager.get_tags("pageTotal")
+        self.__pages = self.__manager.get_keys("pageTotal")
 
     def rebuild(self):
         '''
@@ -90,7 +91,7 @@ class presenter:
         '''
         self.__build()
 
-    def show(self):
+    def show(self, filterAuthor='', filterTitle='', filterTag='', fAnd=True):
         '''
         Show the presenter
         '''
@@ -98,10 +99,13 @@ class presenter:
         # and rebuild the presenter
         if self.__nBooks != len(self.__manager):
             self.__build()
+        
         print("=" * self.__lenHead)
         print(self.__head)
         for iBI in range(self.__nBooks):
-            self.print_item_status(iBI)
+            flag = self.__manager[iBI].filter(filterAuthor, filterTitle, filterTag, fAnd)
+            if flag:
+                self.print_item_status(iBI)
         print("=" * self.__lenHead)
 
     def print_item_status(self, iBI):

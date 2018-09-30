@@ -46,9 +46,10 @@ dictOptionsMana = { \
 dictOptionsPre = { \
         "p": utils.print_pre, \
         "i": utils.show_item_details, \
+        "f": utils.find_item, \
         }
 dictOptionsManaPre = { \
-        "f": utils.find_item, \
+#        "S": utils.sort_items, \
         }
 
 # ===================================================================

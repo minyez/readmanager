@@ -380,15 +380,26 @@ def print_pre(pre):
     pre.show()
 
 # ===========================================================
-# TODO find_item
-def find_item(bm, pre):
+def find_item(pre):
     '''
-    Find a particular item (TODO)
+    Find a particular item by title, author or tag
+    '''
+    assert isinstance(pre, presenter)
+    # ask find criterion
+    __filterTitle = input("--  Title filter? (Enter to skip) ").split()
+    __filterAuthor = input("--  Author filter? (Enter to skip) ").split()
+    __filterTag = input("--  Tag filter? (Enter to skip) ").split()
+    __fAnd = ask_for_sure("--  'AND' search?")
+    pre.rebuild()
+    pre.show(__filterTitle, __filterAuthor, __filterTag, __fAnd)
+
+# TODO sort_items 
+def sort_items(bm, pre):
+    '''
+    Sort book items (TODO)
     '''
     assert isinstance(bm, manager)
     assert isinstance(pre, presenter)
-    # ask key tag to find
-    # ask find criterion
 
 # ===========================================================
 def save_exit(bm):

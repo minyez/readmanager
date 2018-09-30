@@ -21,6 +21,7 @@ tagsMust = { \
             "dateAdded": "1900-01-01", \
             "datePlan": "9999-12-31", \
             "log": {}, \
+            "tag": [], \
             }
 tagsOptl = ("press", "edition", "year", "titleShort", "isbn", "url")
 
@@ -31,7 +32,7 @@ class book_item():
     attributes:
         private:
             __fMod : bool
-                the flag to mark if the information contained in __tagDict
+                the flag to mark if the information contained in __jsonDict
                 is different from those of the initial load of JSON file
             __tagsMust : dict
                 the keys are tags that the JSON file MUST include, even 
@@ -40,11 +41,11 @@ class book_item():
             __tagsOptl : dict
                 similar to __tagsMust, but the tags are optional to help 
                 to clarify the book item
-            __tagDict : dict
+            __jsonDict : dict
                 the dictionary that includes all the tags and their value 
                 of the book item
             __formatTime : str
-                the format of time that timeLastRead and timeLastMod adapt
+                the format of time that timeLastRead and timeLastMod adapt.
         public:
             title : str
                 the title of the book
@@ -83,34 +84,34 @@ class book_item():
         if create_new:
             # deal with duplicate outside
             assert not os.path.isfile(jsonfile)
-            self.__tagDict = {}
+            self.__jsonDict = {}
             #self.__dump_json(jsonfile, overwrite=True)
         else:
             with open(jsonfile, 'r') as hFileIn:
-                self.__tagDict = json.load(hFileIn)
+                self.__jsonDict = json.load(hFileIn)
         # absolute path is used
         self.filepath = os.path.abspath(jsonfile)
 
     def __update_public_attr(self):
         '''
-        Update the public attributes from __tagDict
+        Update the public attributes from __jsonDict
         '''
-        self.title = self.__tagDict["title"]
-        self.pageTotal = self.__tagDict["pageTotal"]
-        self.pageCurrent = self.__tagDict["pageCurrent"]
-        self.noteLocation = self.__tagDict["noteLocation"]
+        self.title = self.__jsonDict["title"]
+        self.pageTotal = self.__jsonDict["pageTotal"]
+        self.pageCurrent = self.__jsonDict["pageCurrent"]
+        self.noteLocation = self.__jsonDict["noteLocation"]
 
     def __check_tagsMust(self):
         '''
-        Check if all member in tagsMust exist in __tagDict dictionatry
-        if tag does not exist, add k-v pair {tag: None} to __tagDict
+        Check if all member in tagsMust exist in __jsonDict dictionatry
+        if tag does not exist, add k-v pair {tag: None} to __jsonDict
         '''
-        # record the original __tagDict
-        tagDictOrig = self.__tagDict.copy()
+        # record the original __jsonDict
+        tagDictOrig = self.__jsonDict.copy()
         # check members in tagsMust
         for tag in self.__tagsMust:
-            self.__tagDict.setdefault(tag, self.__tagsMust[tag])
-        if self.__tagDict != tagDictOrig:
+            self.__jsonDict.setdefault(tag, self.__tagsMust[tag])
+        if self.__jsonDict != tagDictOrig:
             self.__fMod = True
 
     def __dump_json(self, jsonout, overwrite=False):
@@ -129,7 +130,7 @@ class book_item():
         if os.path.isfile(jsonout) and not overwrite:
             copy2(jsonout, jsonout.strip()+'_bak')
         with open(jsonout, 'w') as hFileOut:
-            json.dump(self.__tagDict, hFileOut, indent=2)
+            json.dump(self.__jsonDict, hFileOut, indent=2)
 
     def __calculate_progress(self):
         '''
@@ -147,8 +148,8 @@ class book_item():
         assert 0 <= progCurrent <= 100
         progPlan = 0
         try:
-            dateAdded = dt.date.fromisoformat(self.__tagDict["dateAdded"])
-            datePlan = dt.date.fromisoformat(self.__tagDict["datePlan"])
+            dateAdded = dt.date.fromisoformat(self.__jsonDict["dateAdded"])
+            datePlan = dt.date.fromisoformat(self.__jsonDict["datePlan"])
             today = dt.date.today()
             assert datePlan - dateAdded > dt.timedelta()
             assert today - dateAdded >= dt.timedelta()
@@ -166,7 +167,7 @@ class book_item():
     def __change_tag(self, tag, newValue):
         '''
         Change a non-log tag.
-        The tag should exist in the __tagDict,
+        The tag should exist in the __jsonDict,
         otherwise __add_tag method should be used instead
         
         Parameters
@@ -176,8 +177,8 @@ class book_item():
         '''
         assert tag != "log"
         assert self.__check_tag_exist(tag)
-        oldValue = self.__tagDict[tag]
-        self.__tagDict.update({tag: newValue})
+        oldValue = self.__jsonDict[tag]
+        self.__jsonDict.update({tag: newValue})
         if newValue != oldValue:
             self.__fMod = True
             self.__update_public_attr()
@@ -195,13 +196,13 @@ class book_item():
             the value of the new tag
         '''
         assert not self.__check_tag_exist(tag)
-        self.__tagDict.update({tag: value})
+        self.__jsonDict.update({tag: value})
         self.__fMod = True
         self.update_last_mod()
 
     def __check_tag_exist(self, tag):
         '''
-        check if a tag already exists in the __tagDict
+        check if a tag already exists in the __jsonDict
         
         Parameters
         ----------
@@ -211,25 +212,96 @@ class book_item():
         -------
         bool : True if the tag exists, False otherwise
         '''
-        if tag in self.__tagDict:
+        if tag in self.__jsonDict:
             return True
         return False
 
     # public methods
-    def get_tag(self, tag):
+    def get_key(self, key):
         '''
         Get the value of a particular tag
         
         Parameters
         ----------
-        tag : str
-            the tag name to extract
+        key : str
+            the key to extract
         
         Returns
         -------
         int or str or list or dict : the value of the tag if it exists, otherwise None
         '''
-        return self.__tagDict.get(tag, None)
+        return self.__jsonDict.get(key, None)
+
+    def get_tag(self):
+        '''
+        get the tag of book item
+        '''
+        return self.__jsonDict["tag"]
+
+    def get_mod_time(self):
+        '''
+        Get the time of last modification
+
+        Returns
+        -------
+        `datetime` instance representing the time of last modification
+        if "timeLastMod" is null, return datime(1900, 9, 9, 0, 0, 0)
+        '''
+        if self.__jsonDict["timeLastMod"] in [None, ""]:
+            return dt.datetime(1900, 1, 1, 0, 0, 0)
+        return dt.datetime.strptime(self.__jsonDict["timeLastMod"], self.__formatTime)
+
+    def filter(self, filterTitle='', filterAuthor='', filterTag='', fAnd=True):
+        '''
+        Filter the book item itself by title, author or tags
+
+        Parameters
+        ----------
+        filterTitle : str, list or tuple
+        filterAuthor : str, list or tuple
+        filterTag : str, list or tuple
+        fAnd : bool
+            True for 'and' filter, False for 'or' filter
+
+        Returns 
+        -------
+        bool : 
+        '''
+        flag = fAnd
+
+        __filters = [ \
+                filterTitle, \
+                filterAuthor, \
+                filterTag, \
+                ]
+        __patternToFilter = [ \
+                self.get_title(), \
+                self.get_author(), \
+                self.get_tag(), \
+                ]
+
+        for __filter, __pattern in zip(__filters, __patternToFilter):
+            if __filter:
+                if isinstance(__filter, (list, tuple)):
+                    for item in __filter:
+                        f = item in __pattern
+                        if f != fAnd:
+                            return not flag
+                else:
+                    f = __filter in __pattern
+                    if f != fAnd:
+                        return not flag
+        return flag
+
+    def get_author(self):
+        '''
+        Get the author of book
+
+        Returns
+        -------
+        str : author name
+        '''
+        return self.__jsonDict["author"]
 
     def update_author(self, newAuthor):
         '''
@@ -264,9 +336,9 @@ class book_item():
         -------
         str : title or short title of book
         '''
-        if short and "titleShort" in self.__tagDict.keys():
-            return self.__tagDict["titleShort"]
-        return self.__tagDict["title"]
+        if short and "titleShort" in self.__jsonDict.keys():
+            return self.__jsonDict["titleShort"]
+        return self.__jsonDict["title"]
 
     def get_progress(self):
         '''
@@ -283,14 +355,14 @@ class book_item():
         '''
         Return the path of source file of the book
         '''
-        return self.__tagDict["bookLocalSource"]
+        return self.__jsonDict["bookLocalSource"]
 
     def get_source_ext(self):
         '''
         Return the extension name (lowercase) of the source file of the book
         '''
         try:
-            pathName, pathExt = os.path.splitext(self.__tagDict["bookLocalSource"])
+            pathName, pathExt = os.path.splitext(self.__jsonDict["bookLocalSource"])
         except TypeError:
             return None
         if len(pathExt) > 0:
@@ -398,7 +470,7 @@ class book_item():
         Update the log dictionary with {"yyyy-mm-dd": self.pageCurrent} 
         the date stamp in iso format is generated by datetime.date.today()
         '''
-        self.__tagDict["log"].update({str(dt.date.today()): self.pageCurrent})
+        self.__jsonDict["log"].update({str(dt.date.today()): self.pageCurrent})
         # hard to tell if the log is really updated. Let's say it is
         self.__fMod = True
 
@@ -415,8 +487,8 @@ class book_item():
 
     def update_json(self, overwrite=False):
         '''
-        Update the json file with current __tagDict
-        only when the __tagDict has been modified
+        Update the json file with current __jsonDict
+        only when the __jsonDict has been modified
         
         Parameters
         ----------

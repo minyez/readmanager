@@ -1,10 +1,10 @@
-# Reading Manager
+# **Read**ing **Mana**ger
 
 [![Build Status](https://travis-ci.org/minyez/readmanager.png?branch=master)](https://travis-ci.org/minyez/readmanager)
 
 ## Motivation
 
-This is a simple manager for the personal reading, especially for books and note-taking.
+`readmanager` is a simple manager for the personal reading, especially for books and note-taking.
 DouBan provides only the way to mark the book you are reading or have read, 
 but has no way to take care where you have been reading at present.
 I have **always** been forgeting the books I am reading, as so many stuffs disturbing.
@@ -53,9 +53,12 @@ in the same path as the configuration file.
 
 See book JSONs in `test/data/JSON` for example.
 To create JSON file for book item, the easiest way is to follow the instructions in `readmana`.
-When creating, it will initialize all required keys/tags for the reading-manager to work properly.
-These keys/tags are human-readable for you to modify them manually, but can also be modified by functions in `readmana`.
+When creating, it will initialize all required keys for the reading-manager to work properly.
+These keys are human-readable for you to modify them manually, but can also be modified by functions in `readmana`.
 
 ## TODO
 
 - [ ] compatibility of showing Chinese for presenter class
+- [x] sort items in manager instance by last modification time of books when loading
+- [x] support item searching of author, title or tags of book
+

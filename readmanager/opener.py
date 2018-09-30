@@ -28,7 +28,7 @@ def open_book(bm, iBI):
     book = bm.books[iBI]
     stateNote, stateFile = bm.get_note_source_state(iBI)
     pathNote, pathFile = bm.get_note_path(iBI), bm.books[iBI].get_source()
-    extNote = book.get_tag("noteType").lower()
+    extNote = book.get_key("noteType").lower()
     extFile = book.get_source_ext()
 
     openSystem = { \

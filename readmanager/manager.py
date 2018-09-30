@@ -96,9 +96,9 @@ class manager():
         load all json files in dbJSON directory as a list of book_item instances
         '''
         if not reLoad:
-            print("Manager getting all book items... ", end="")
+            print("Manager getting all book items...", end=" ")
         else:
-            print("Manager reloading... ", end="")
+            print("Manager reloading...", end=" ")
         
         # clear books
         self.books = []
@@ -109,6 +109,25 @@ class manager():
             print("Done. %d items read." % len(self.books))
         else:
             print("Reloaded. %d items read." % len(self.books))
+        self.sort_books_by_mod_time()
+
+    def sort_books_by_mod_time(self):
+        '''
+        Sort book_item instances by descending datetime
+        '''
+        self.books = sorted(self.books, key=lambda x: x.get_mod_time(), reverse=True)
+
+    def sort_books_by_author(self):
+        '''
+        Sort book_item instances by ascending author name, with simple string comparing
+        '''
+        self.books = sorted(self.books, key=lambda x: x.get_author())
+
+    def sort_books_by_title(self):
+        '''
+        Sort book_item instances by ascending author name, with simple string comparing
+        '''
+        self.books = sorted(self.books, key=lambda x: x.get_title(short=False))
 
     def add_new_book(self, bi):
         '''
@@ -132,9 +151,9 @@ class manager():
         self.update_json_all()
         self.__load_book_items(reLoad=True)
 
-    def get_tags(self, tag):
+    def get_keys(self, tag):
         '''
-        Get the values of a particular tag from all book_item by get_tag method
+        Get the values of a particular tag from all book_item by get_key method
         See book_item class for more information
      
         Parameters
@@ -148,7 +167,7 @@ class manager():
             has the same length as self.books. 
             None if the tag does not exist for the book_item
         '''
-        return [bi.get_tag(tag) for bi in self.books]
+        return [bi.get_key(tag) for bi in self.books]
 
     def get_progress_all(self):
         '''
@@ -169,8 +188,8 @@ class manager():
         otherwise str : the path of note
         '''
         assert iBI < len(self.books)
-        noteLoc = self.books[iBI].get_tag("noteLocation")
-        noteType = self.books[iBI].get_tag("noteType")
+        noteLoc = self.books[iBI].get_key("noteLocation")
+        noteType = self.books[iBI].get_key("noteType")
      
         if noteLoc is None or noteType is None:
             return None
