@@ -54,7 +54,7 @@ class test_bookitem(ut.TestCase):
         self.assertTrue(progCurrent, 1)
         # log
         book.update_log()
-        self.assertTrue(book._book_item__tagDict["log"][str(dt.date.today())] == 1)
+        self.assertTrue(book._book_item__jsonDict["log"][str(dt.date.today())] == 1)
 
 
 class test_manager(ut.TestCase):
@@ -67,7 +67,7 @@ class test_manager(ut.TestCase):
         read from custom config file with dbJSON and dbNote specified
         '''
         # raise IOError if the specified config file is not found.
-        self.assertRaises(FileNotFoundError, manager, 'data/config_notexist.json')
+        self.assertRaises(FileNotFoundError, manager, 'data/configNotExist.json')
 
         mana = manager('data/config_test.json')
         # two JSONs in the JSON directory specified in data/config_test.json
@@ -76,12 +76,12 @@ class test_manager(ut.TestCase):
         # Change dateAdded tag of second book, test effectiveness
         # Raise ValueError when a non-isoformat string is entered
         self.assertRaises(ValueError, mana[0].update_date, "added", '19920129')
-        # Raise KeyError when the dateType is available
+        # Raise KeyError when the dateType is not available
         self.assertRaises(KeyError, mana[0].update_date, "finish", '2018-11-29')
         # Change datedAdded to today
         todayStr = str(dt.date.today())
         mana[1].update_date("added", todayStr)
-        self.assertTrue(mana[1]._book_item__tagDict["dateAdded"] == todayStr)
+        self.assertTrue(mana[1]._book_item__jsonDict["dateAdded"] == todayStr)
 
         # test progress calculation utility
         progress = mana.get_progress_all()
