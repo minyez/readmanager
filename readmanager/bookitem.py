@@ -12,7 +12,7 @@ import datetime as dt
 
 # datePlan default is set to a huge value 
 # so that the default plan progress will be 0
-tagsMust = { \
+keysMust = { \
             "title": None, "author": None, \
             "pageTotal": 1, "pageCurrent": 0, \
             "noteType": None, "noteLocation": None, \
@@ -23,7 +23,7 @@ tagsMust = { \
             "log": {}, \
             "tag": [], \
             }
-tagsOptl = ("press", "edition", "year", "titleShort", "isbn", "url")
+keysOptl = ("press", "edition", "year", "titleShort", "isbn", "url")
 
 # book_item
 class book_item():
@@ -34,15 +34,15 @@ class book_item():
             __fMod : bool
                 the flag to mark if the information contained in __jsonDict
                 is different from those of the initial load of JSON file
-            __tagsMust : dict
-                the keys are tags that the JSON file MUST include, even 
-                though they can be null. the value are the default value
-                for initialization.
-            __tagsOptl : dict
-                similar to __tagsMust, but the tags are optional to help 
-                to clarify the book item
+            __keysMust : dict
+                the keys in dictionary are the keys that the JSON file 
+                MUST include, even though they can be null. the values are 
+                the default value for initialization.
+            __keysOptl : dict
+                similar to __keysMust, but the keys are optional for book
+                JSON to help to clarify the book item
             __jsonDict : dict
-                the dictionary that includes all the tags and their value 
+                the dictionary that includes all the keys and their value 
                 of the book item
             __formatTime : str
                 the format of time that timeLastRead and timeLastMod adapt.
@@ -55,8 +55,8 @@ class book_item():
                 current page of reading
     '''
 
-    __tagsMust = tagsMust
-    __tagsOptl = tagsOptl
+    __keysMust = keysMust
+    __keysOptl = keysOptl
     __formatTime = "%Y-%m-%d %X"
     noteSupportType = ["md", "tex", "txt", "docx"]
 
@@ -64,7 +64,7 @@ class book_item():
     def __init__(self, jsonfile, create_new=False):
         self.__readjson(jsonfile, create_new)
         self.__fMod = False
-        self.__check_tagsMust()
+        self.__check_keysMust()
         self.__update_public_attr()
 
     def __readjson(self, jsonfile, create_new):
@@ -78,7 +78,7 @@ class book_item():
 
         create_new : bool
             flag to create a new #empty json file by __dump_json
-            #if set true, the original JSON will be overwritten
+            if set true, the original JSON will be overwritten
         '''
         assert os.path.splitext(jsonfile)[1] == '.json'
         if create_new:
@@ -101,22 +101,22 @@ class book_item():
         self.pageCurrent = self.__jsonDict["pageCurrent"]
         self.noteLocation = self.__jsonDict["noteLocation"]
 
-    def __check_tagsMust(self):
+    def __check_keysMust(self):
         '''
-        Check if all member in tagsMust exist in __jsonDict dictionatry
+        Check if all member in keysMust exist in __jsonDict dictionatry
         if tag does not exist, add k-v pair {tag: None} to __jsonDict
         '''
         # record the original __jsonDict
         tagDictOrig = self.__jsonDict.copy()
-        # check members in tagsMust
-        for tag in self.__tagsMust:
-            self.__jsonDict.setdefault(tag, self.__tagsMust[tag])
+        # check members in keysMust
+        for tag in self.__keysMust:
+            self.__jsonDict.setdefault(tag, self.__keysMust[tag])
         if self.__jsonDict != tagDictOrig:
             self.__fMod = True
 
     def __dump_json(self, jsonout, overwrite=False):
         '''
-        Dump the tags to a JSON file
+        Dump the __jsonDict to a JSON file
         If the JSON file exists and overwrite is False, back up it with _bak suffix
 
         Parameters
@@ -160,66 +160,67 @@ class book_item():
             raise ValueError("datePlan is earlier than dateAdded, or dateAdded later than today")
         except ValueError:
             print("in %s:" % self.filepath)
-            raise ValueError("check whether the date tags are in iso format, i.e. YYYY-MM-DD")
+            raise ValueError("check whether the date keys are in iso format, i.e. YYYY-MM-DD")
 
         return progCurrent, progPlan
 
-    def __change_tag(self, tag, newValue):
+    def __change_key(self, key, newValue):
         '''
-        Change a non-log tag.
-        The tag should exist in the __jsonDict,
-        otherwise __add_tag method should be used instead
+        Change a non-log/tag key.
+        The key should exist in the __jsonDict,
+        otherwise __add_key method should be used instead
         
         Parameters
         ----------
-        tag : str
+        key : str
         value : int, str, list, dict
         '''
-        assert tag != "log"
-        assert self.__check_tag_exist(tag)
-        oldValue = self.__jsonDict[tag]
-        self.__jsonDict.update({tag: newValue})
+        assert key != "log"
+        assert key != "tag"
+        assert self.__check_key_exist(key)
+        oldValue = self.__jsonDict[key]
+        self.__jsonDict.update({key: newValue})
         if newValue != oldValue:
             self.__fMod = True
             self.__update_public_attr()
-            self.update_last_mod()
+            self.update_last_time("mod")
 
-    def __add_tag(self, tag, value):
+    def __add_key(self, key, value):
         '''
-        Add new tag to book_item
+        Add new key to book_item
         
         Parameters
         ----------
-        tag : str
-            the tag to add
+        key : str
+            the key to add
         value : int, str, list, dict
-            the value of the new tag
+            the value of the new key
         '''
-        assert not self.__check_tag_exist(tag)
-        self.__jsonDict.update({tag: value})
+        assert not self.__check_key_exist(key)
+        self.__jsonDict.update({key: value})
         self.__fMod = True
-        self.update_last_mod()
+        self.update_last_time("mod")
 
-    def __check_tag_exist(self, tag):
+    def __check_key_exist(self, key):
         '''
-        check if a tag already exists in the __jsonDict
+        check if a key already exists in the __jsonDict
         
         Parameters
         ----------
-        tag : str
+        key : str
         
         Returns
         -------
-        bool : True if the tag exists, False otherwise
+        bool : True if the key exists, False otherwise
         '''
-        if tag in self.__jsonDict:
+        if key in self.__jsonDict:
             return True
         return False
 
     # public methods
     def get_key(self, key):
         '''
-        Get the value of a particular tag
+        Get the value of a particular key
         
         Parameters
         ----------
@@ -228,7 +229,7 @@ class book_item():
         
         Returns
         -------
-        int or str or list or dict : the value of the tag if it exists, otherwise None
+        int or str or list or dict : the value of the key if it exists, otherwise None
         '''
         return self.__jsonDict.get(key, None)
 
@@ -245,7 +246,7 @@ class book_item():
         Returns
         -------
         `datetime` instance representing the time of last modification
-        if "timeLastMod" is null, return datime(1900, 9, 9, 0, 0, 0)
+        if "timeLastMod" is null, return datime(1900, 1, 1, 0, 0, 0)
         '''
         if self.__jsonDict["timeLastMod"] in [None, ""]:
             return dt.datetime(1900, 1, 1, 0, 0, 0)
@@ -311,7 +312,7 @@ class book_item():
         ----------
         newAuthor : str
         '''
-        self.__change_tag("author", newAuthor)
+        self.__change_key("author", newAuthor)
 
     def update_title(self, newTitle):
         '''
@@ -321,7 +322,7 @@ class book_item():
         ----------
         newTitle : str
         '''
-        self.__change_tag("title", newTitle)
+        self.__change_key("title", newTitle)
     
     def get_title(self, short=False):
         '''
@@ -351,35 +352,42 @@ class book_item():
         progCurrent, progPlan = self.__calculate_progress()
         return progCurrent, progPlan
 
-    def get_source(self):
+    def get_source(self, ext=False):
         '''
         Return the path of source file of the book
+
+        Parameters
+        ----------
+        ext : bool
+            Use True to return the extension name of the source file, False for full path
         '''
+        if ext:
+            try:
+                pathName, pathExt = os.path.splitext(self.__jsonDict["bookLocalSource"])
+            except TypeError:
+                return None
+            if len(pathExt) > 0:
+                pathExt = pathExt[1:]
+            return pathExt.lower()
         return self.__jsonDict["bookLocalSource"]
 
-    def get_source_ext(self):
+    def update_last_time(self, typeTime):
         '''
-        Return the extension name (lowercase) of the source file of the book
+        update the key of last time of read or modification with current time
+        
+        Parameters
+        ----------
+        typeTime : str
+            "read" for "timeLastRead", "mod" for "timeLastMod"
         '''
         try:
-            pathName, pathExt = os.path.splitext(self.__jsonDict["bookLocalSource"])
-        except TypeError:
-            return None
-        if len(pathExt) > 0:
-            pathExt = pathExt[1:]
-        return pathExt.lower()
-
-    def update_last_read(self):
-        '''
-        Update timeLastRead with current time
-        '''
-        self.__change_tag("timeLastRead", time.strftime(self.__formatTime))
-
-    def update_last_mod(self):
-        '''
-        Update timeLastRead with current time
-        '''
-        self.__change_tag("timeLastMod", time.strftime(self.__formatTime))
+            __typeTime = typeTime.strip().lower()
+            if __typeTime == "read":
+                self.__change_key("timeLastRead", time.strftime(self.__formatTime))
+            elif __typeTime.startswith("mod"):
+                self.__change_key("timeLastMod", time.strftime(self.__formatTime))
+        except AttributeError:
+            pass
 
     def update_page(self, pageType, pageNew):
         '''
@@ -395,10 +403,10 @@ class book_item():
         __pageType = pageType.lower()
         if __pageType == "current":
             assert 0 <= pageNew <= self.pageTotal
-            self.__change_tag("pageCurrent", pageNew)
+            self.__change_key("pageCurrent", pageNew)
         elif __pageType == "total":
             assert isinstance(pageNew, int)
-            self.__change_tag("pageTotal", pageNew)
+            self.__change_key("pageTotal", pageNew)
 
     def update_source_path(self, sourcePath):
         '''
@@ -410,7 +418,7 @@ class book_item():
             the path of the loca book source file
         '''
         if sourcePath != "":
-            self.__change_tag("bookLocalSource", os.path.expanduser(os.path.expandvars(sourcePath)))
+            self.__change_key("bookLocalSource", os.path.expanduser(os.path.expandvars(sourcePath)))
 
     def update_note_dir(self, noteDir):
         '''
@@ -421,7 +429,7 @@ class book_item():
         noteDir : str
             the path of the book directory
         '''
-        self.__change_tag("noteLocation", os.path.expanduser(os.path.expandvars(noteDir)))
+        self.__change_key("noteLocation", os.path.expanduser(os.path.expandvars(noteDir)))
 
     def update_note_type(self, noteType):
         '''
@@ -434,16 +442,16 @@ class book_item():
         '''
         __noteType = noteType.lower()
         if __noteType in self.noteSupportType:
-            self.__change_tag("noteType", __noteType)
+            self.__change_key("noteType", __noteType)
 
     def update_date(self, dateType, dateStr=None):
         '''
-        update the date tag specified by dateType with dateStr
+        update the date key specified by dateType with dateStr
      
         Parameters
         ----------
         dateType : str, "added" or "plan"
-            the tag of date to change
+            the key of date to change
         dateStr : str
             the isoformat date string
         '''
@@ -456,7 +464,7 @@ class book_item():
             # dateStr is needed when dateType is "plan"
         try:
             __date = dt.date.fromisoformat(__dateStr)
-            self.__change_tag(__dictDateType[__dateType], __dateStr)
+            self.__change_key(__dictDateType[__dateType], __dateStr)
         except ValueError:
             if __dateType == "plan":
                 pass
@@ -474,16 +482,25 @@ class book_item():
         # hard to tell if the log is really updated. Let's say it is
         self.__fMod = True
 
-    #def write_json(self, jsonout):
-    #    '''
-    #    write the book item as a json file
-    #    
-    #    Parameters
-    #    ----------
-    #    jsonout : str
-    #        the file name of JSON output
-    #    '''
-    #    self.__dump_json(jsonout)
+    def update_tag(self, listTag, fAdd=True):
+        '''
+        Parameters
+        ----------
+        listTags : list or tuple
+            list/tuple containing tag strings to add. string should be in lowercase
+        fAdd : bool
+            True to add tags, False to remove tags
+        '''
+        __bookTag = [tag.lower() for tag in self.__jsonDict["tag"]]
+        for tag in listTag:
+            if tag:
+                if fAdd and tag not in __bookTag:
+                    self.__jsonDict["tag"].append(tag)
+                    self.__fMod = True
+                elif not fAdd and tag in __bookTag:
+                    i = self.__jsonDict["tag"].index(tag)
+                    del self.__jsonDict["tag"][i]
+                    self.__fMod = True
 
     def update_json(self, overwrite=False):
         '''
@@ -496,6 +513,7 @@ class book_item():
             flag to overwrite the originial JSON file
         '''
         if self.__fMod:
-            self.__dump_json(self.filepath, overwrite)
+            self.update_last_time("mod")
             self.__fMod = False
+            self.__dump_json(self.filepath, overwrite)
 

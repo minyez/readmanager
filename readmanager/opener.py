@@ -29,7 +29,7 @@ def open_book(bm, iBI):
     stateNote, stateFile = bm.get_note_source_state(iBI)
     pathNote, pathFile = bm.get_note_path(iBI), bm.books[iBI].get_source()
     extNote = book.get_key("noteType").lower()
-    extFile = book.get_source_ext()
+    extFile = book.get_source(ext=True)
 
     openSystem = { \
             "darwin": __open_book_darwin, \
@@ -62,7 +62,7 @@ def open_book(bm, iBI):
             except IndexError:
                 pass
         book.update_page("current", __pageNew)
-        book.update_last_read()
+        book.update_last_time("read")
         book.update_log()
         book.update_json()
         print("--  Log, JSON updated :)")

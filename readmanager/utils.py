@@ -108,7 +108,7 @@ def ask_for_sure(tipStr, verbose=True):
     tipStr : str
         the string of tip that is shown to the use
     verbose : bool
-        flag for asking. Return True without condition if it is False
+        flag for asking. Function will always return True if verbose is set False
 
     Returns
     -------
@@ -146,7 +146,9 @@ def modify(bm):
             "tp": __modify_total_page, \
             "sp": __modify_source_path, \
             "a": __modify_author, \
-            "t": __modify_title, \
+            "T": __modify_title, \
+            "at": __add_tag, \
+            "dt": __delete_tag, \
             }
     __book = bm[iBI]
     __helpStr = ''
@@ -161,7 +163,7 @@ def modify(bm):
         return
 
 # ===========================================================
-# tag modify utilities
+# key modify utilities
 def __modify_note_dir(BI):
     '''
     modify the Note Directory of book
@@ -180,7 +182,7 @@ def __modify_note_dir(BI):
 
 def __modify_note_type(BI):
     '''
-    modify the note type of book
+    modify the Note Type
 
     Paramters
     ---------
@@ -230,7 +232,7 @@ def __modify_source_path(BI):
 
 def __modify_author(BI):
     '''
-    modify the Author of the book
+    modify the Author
 
     Paramters
     ---------
@@ -241,7 +243,7 @@ def __modify_author(BI):
 
 def __modify_title(BI):
     '''
-    modify the Title of the book
+    modify the Title
 
     Paramters
     ---------
@@ -249,6 +251,30 @@ def __modify_title(BI):
     '''
     __title = input("    Title: ").strip()
     BI.update_title(__title)
+
+def __add_tag(BI):
+    '''
+    Add new Tags 
+
+    Paramters
+    ---------
+    BI : book_item instance
+    '''
+    __listTag = input("    new tags (separate by space): ").split()
+    BI.update_tag(__listTag, fAdd=True)
+
+def __delete_tag(BI):
+    '''
+    Delete Tags
+
+    Paramters
+    ---------
+    BI : book_item instance
+    '''
+    __tagsCurrent = BI.get_tag()
+    print("    Tags now: %s" % ", ".join(__tagsCurrent))
+    __listTag = input("    tags to delete (separate by space): ").split()
+    BI.update_tag(__listTag, fAdd=False)
 
 def get_func_doc(func):
     '''
@@ -292,7 +318,8 @@ def create_new(bm):
     __modify_note_dir(newBI)
     __modify_note_type(newBI)
     __modify_source_path(newBI)
-    newBI.update_last_mod()
+    __add_tag(newBI)
+    newBI.update_last_time("mod")
     newBI.update_date("added")
     __modify_plan_date(newBI)
     newBI.update_log()
