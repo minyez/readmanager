@@ -7,6 +7,7 @@ Utilities used in the main program readmana
 from __future__ import print_function, absolute_import
 import os
 import sys
+import re
 import json
 from readmanager.presenter import presenter
 from readmanager.manager import manager
@@ -149,6 +150,7 @@ def modify(bm):
             "T": __modify_title, \
             "at": __add_tag, \
             "dt": __delete_tag, \
+            "r": __add_remark, \
             }
     __book = bm[iBI]
     __helpStr = ''
@@ -260,7 +262,11 @@ def __add_tag(BI):
     ---------
     BI : book_item instance
     '''
-    __listTag = input("    new tags (separate by space): ").split()
+    __listTag = []
+    __strTag = input("    new tags (separate by comma): ")
+    for tag in re.split(r'[,\n]', __strTag):
+        if tag.strip():
+            __listTag.append(tag.strip())
     BI.update_tag(__listTag, fAdd=True)
 
 def __delete_tag(BI):
@@ -272,9 +278,20 @@ def __delete_tag(BI):
     BI : book_item instance
     '''
     __tagsCurrent = BI.get_tag()
-    print("    Tags now: %s" % ", ".join(__tagsCurrent))
+    print("    Tags now: '%s'" % "', '".join(__tagsCurrent))
     __listTag = input("    tags to delete (separate by space): ").split()
     BI.update_tag(__listTag, fAdd=False)
+
+def __add_remark(BI):
+    '''
+    add remark for today
+
+    Paramters
+    ---------
+    BI : book_item instance
+    '''
+    __remark = input("    New remark (be short, otherwise write it in note): \n    > ").strip()
+    BI.update_remark(__remark)
 
 def get_func_doc(func):
     '''

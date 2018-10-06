@@ -21,6 +21,7 @@ keysMust = { \
             "dateAdded": "1900-01-01", \
             "datePlan": "9999-12-31", \
             "log": {}, \
+            "remark": {}, \
             "tag": [], \
             }
 keysOptl = ("press", "edition", "year", "titleShort", "isbn", "url")
@@ -166,7 +167,7 @@ class book_item():
 
     def __change_key(self, key, newValue):
         '''
-        Change a non-log/tag key.
+        Change a non-log/tag/remark key.
         The key should exist in the __jsonDict,
         otherwise __add_key method should be used instead
         
@@ -177,6 +178,7 @@ class book_item():
         '''
         assert key != "log"
         assert key != "tag"
+        assert key != "remark"
         assert self.__check_key_exist(key)
         oldValue = self.__jsonDict[key]
         self.__jsonDict.update({key: newValue})
@@ -282,14 +284,19 @@ class book_item():
                 ]
 
         for __filter, __pattern in zip(__filters, __patternToFilter):
+            # make all lower case
+            if isinstance(__pattern, (list, tuple)):
+                __patternLower = [p.lower() for p in __pattern]
+            else:
+                __patternLower = __pattern.lower()
             if __filter:
                 if isinstance(__filter, (list, tuple)):
                     for item in __filter:
-                        f = item in __pattern
+                        f = item.lower() in __patternLower
                         if f != fAnd:
                             return not flag
                 else:
-                    f = __filter in __pattern
+                    f = __filter.lower() in __patternLower
                     if f != fAnd:
                         return not flag
         return flag
@@ -516,4 +523,25 @@ class book_item():
             self.update_last_time("mod")
             self.__fMod = False
             self.__dump_json(self.filepath, overwrite)
+
+    def update_remark(self, strRemark):
+        '''
+        Add remark
+
+        Parameters
+        ----------
+        strRemark : str
+            the remark string
+        '''
+        # if an empty remark string is typed, skip update
+        if strRemark == '':
+            return
+
+        strToday = str(dt.date.today())
+        remarkToday = self.__jsonDict['remark'].get(strToday, False)
+        if remarkToday:
+            remarkToday.append(strRemark)
+        else:
+            self.__jsonDict["remark"].update({strToday:[strRemark]})
+        self.__fMod = True
 
