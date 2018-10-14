@@ -128,7 +128,7 @@ class presenter:
             self.__lenNoteMark, get_file_state_marker(noteState), \
             self.__lenSourceMark, get_file_state_marker(sourceState), \
             self.__lenProgBar, \
-            get_prog_barstr(self.__progress[iBI], self.__lenProgBar, self.__use256), \
+            prog_barstr(self.__progress[iBI], self.__lenProgBar, self.__use256), \
             self.__lenProg, self.__progress[iBI][0], \
             self.__colorEnd, \
             ))
@@ -150,7 +150,7 @@ def get_file_state_marker(fileState):
         return "◆"
     return "?"
 
-def get_prog_barstr(prog, totalBarLen, use256=False):
+def prog_barstr(prog, totalBarLen, use256=False):
     '''
     get progress bar string
 

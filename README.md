@@ -63,4 +63,6 @@ These keys are human-readable for you to modify them manually, but can also be m
 - [x] sort items in manager instance by last modification time of books when loading
 - [x] support item searching of author, title or tags of book
 - [x] add short remarks for a book
-
+- [ ] marker for 3 most recent read
+- [ ] archiev method of manager class
+- [ ] Batch mod

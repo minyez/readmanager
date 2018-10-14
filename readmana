@@ -1,14 +1,11 @@
 #!/usr/bin/env python3
 '''
-Main stream of readmanager.
+A simple manager for book reading and note.
 '''
 
 from __future__ import print_function, absolute_import
 from argparse import ArgumentParser
-import sys
-from readmanager import utils, opener
-from readmanager.manager import manager
-from readmanager.presenter import presenter
+from readmanager import main
 
 # ===================================================================
 # Parser
@@ -19,105 +16,13 @@ mode.add_argument("-c", dest='check', action="store_true", \
         help="Check-mode: check book items")
 mode.add_argument("-r", dest='read', action="store_true", \
         help="Read-mode: read books without access to modify book items")
+mode.add_argument("-b", dest='batch', nargs="+", \
+        help="Batch-mode (for utility test only))")
 params = parser.parse_args()
-
 # ===================================================================
-# Read config file, load the manager and presenter,
-# flush screen and show all items once.
-configFile = utils.get_config()
-bookmanager = manager(configFile)
-bookpre = presenter(bookmanager)
-if not params.check:
-    utils.flush_screen()
-bookpre.show()
 
-# ===================================================================
-# if check-mode is triggered, exit safely
-if params.check:
-    sys.exit(0)
-
-# ===================================================================
-# Options dictionary
-dictOptionsMana = { \
-        "s": utils.save_exit, \
-        "m": utils.modify, \
-        "c": utils.create_new, \
-        }
-dictOptionsPre = { \
-        "p": utils.print_pre, \
-        "i": utils.show_item_details, \
-        "f": utils.find_item, \
-        }
-dictOptionsManaPre = { \
-#        "S": utils.sort_items, \
-        }
-
-# ===================================================================
-# Set help string according to Options dictionaries
-helpStrRead = 'Menu:\n    #: open No.# book and note (if available);\n'
-helpStr0SQ = ''
-helpStrMana = ''
-helpStrPre = ''
-helpStrManaPre = ''
-
-if params.read:
-    helpStr0SQ = '%5s: %s\n' % ("0", dictOptionsMana["s"].__doc__.split("\n")[1].strip())
+if not params.batch:
+    ui = main.readmanager_ui(modeCheck=params.check, modeRead=params.read)
 else:
-    for key in dictOptionsMana:
-        __key = key
-        if __key == "s":
-            __key = "0/s"
-        helpStrMana += '%5s: %s\n' % (__key, utils.get_func_doc(dictOptionsMana[key]))
-    for key in dictOptionsPre:
-        helpStrPre += '%5s: %s\n' % (key, utils.get_func_doc(dictOptionsPre[key]))
-    for key in dictOptionsManaPre:
-        helpStrManaPre += '%5s: %s\n' % (key, utils.get_func_doc(dictOptionsManaPre[key]))
+    main.readmanager_batch(params.batch)
 
-helpStrExit = '    other letters or <0: quit without save;\n'
-helpStrPrompt = '--> '
-
-helpStr = helpStrRead + helpStr0SQ + \
-        helpStrMana + helpStrPre + helpStrManaPre + \
-        helpStrExit + \
-        helpStrPrompt
-
-# ===================================================================
-# Start interaction, if non-check mode is selected
-fRetry = False
-while True:
-    if fRetry:
-        option = input(helpStrPrompt).strip()
-    else:
-        option = input(helpStr).strip()
-        
-    try:
-        iBI = int(option) - 1
-        if iBI in range(len(bookmanager)):
-            fRetry = False
-            opener.open_book(bookmanager, iBI)
-        elif iBI >= len(bookmanager):
-            print("Invalid book #. Retry. ", end="")
-            fRetry = True
-        elif iBI == -1:
-            utils.save_exit(bookmanager)
-        else:
-            utils.exit_wo_save()
-    except ValueError:
-        if option == '':
-            fRetry = True
-            continue
-        if option in ["exit", "q"]:
-            sys.exit(0)
-        if params.read:
-            utils.exit_wo_save()
-        fRetry = False
-        if option in dictOptionsMana:
-            dictOptionsMana[option](bookmanager)
-            #bookpre.rebuild()
-        elif option in dictOptionsPre:
-            dictOptionsPre[option](bookpre)
-        elif option in dictOptionsManaPre:
-            dictOptionsManaPre[option](bookmanager, bookpre)
-        else:
-            utils.exit_wo_save()
-# ===================================================================

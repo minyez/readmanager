@@ -147,7 +147,7 @@ def modify(bm):
             "tp": __modify_total_page, \
             "sp": __modify_source_path, \
             "a": __modify_author, \
-            "T": __modify_title, \
+            "t": __modify_title, \
             "at": __add_tag, \
             "dt": __delete_tag, \
             "r": __add_remark, \
@@ -423,6 +423,16 @@ def print_pre(pre):
     pre.rebuild()
     pre.show()
 
+def show_tags(pre):
+    '''
+    show all existing Tags of the books
+
+    Paramters
+    ---------
+    pre : presenter instance
+    '''
+    assert isinstance(pre, presenter)
+
 # ===========================================================
 def find_item(pre):
     '''
@@ -437,13 +447,28 @@ def find_item(pre):
     pre.rebuild()
     pre.show(__filterTitle, __filterAuthor, __filterTag, __fAnd)
 
-# TODO sort_items 
 def sort_items(bm, pre):
     '''
-    Sort book items (TODO)
+    Sort book items
     '''
     assert isinstance(bm, manager)
     assert isinstance(pre, presenter)
+
+    __key = input("--  Sort by? [(T)itle, (A)uthor, last(M)od] ")
+
+    __keyTitle = ["t", "title", ]
+    __keyAuthor = ["a", "author", ]
+    __keyLastMod = ["m", "lastmod", ]
+
+    if __key in __keyTitle:
+        bm.sort_books_by_title()
+    if __key in __keyAuthor:
+        bm.sort_books_by_author()
+    if __key in __keyLastMod:
+        bm.sort_books_by_mod_time()
+
+    pre.rebuild()
+    pre.show()
 
 # ===========================================================
 def save_exit(bm):

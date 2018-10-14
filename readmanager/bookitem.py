@@ -241,19 +241,6 @@ class book_item():
         '''
         return self.__jsonDict["tag"]
 
-    def get_mod_time(self):
-        '''
-        Get the time of last modification
-
-        Returns
-        -------
-        `datetime` instance representing the time of last modification
-        if "timeLastMod" is null, return datime(1900, 1, 1, 0, 0, 0)
-        '''
-        if self.__jsonDict["timeLastMod"] in [None, ""]:
-            return dt.datetime(1900, 1, 1, 0, 0, 0)
-        return dt.datetime.strptime(self.__jsonDict["timeLastMod"], self.__formatTime)
-
     def filter(self, filterTitle='', filterAuthor='', filterTag='', fAnd=True):
         '''
         Filter the book item itself by title, author or tags
@@ -378,23 +365,75 @@ class book_item():
             return pathExt.lower()
         return self.__jsonDict["bookLocalSource"]
 
-    def update_last_time(self, typeTime):
+    def update_last_time(self, timeType):
         '''
         update the key of last time of read or modification with current time
         
         Parameters
         ----------
-        typeTime : str
+        timeType : str
             "read" for "timeLastRead", "mod" for "timeLastMod"
         '''
         try:
-            __typeTime = typeTime.strip().lower()
-            if __typeTime == "read":
-                self.__change_key("timeLastRead", time.strftime(self.__formatTime))
-            elif __typeTime.startswith("mod"):
-                self.__change_key("timeLastMod", time.strftime(self.__formatTime))
+            __timeType = timeType.strip().lower()
+            if __timeType == "read":
+                __key = "timeLastRead"
+            elif __timeType.startswith("mod"):
+                __key = "timeLastMod"
+            self.__change_key(__key, time.strftime(self.__formatTime))
         except AttributeError:
             pass
+
+    def get_last_time(self, timeType):
+        '''
+        Get the time of last read or modification, specified by timeType
+
+        Parameters
+        ----------
+        timeType : str, "read" or "mod"
+            choose which time to return, "read" for last read and "mod" for last modification
+     
+        Returns
+        -------
+        datetime : the datetime instance corresponding to the time last read/mod.
+            if the time is null in json, 1990-01-01 will be returned
+        '''
+
+        __timeType = timeType.strip().lower()
+        if __timeType == "read":
+            __key = "timeLastRead"
+        elif __timeType.startswith("mod"):
+            __key = "timeLastMod"
+        else:
+            raise ValueError("timeType should be either \"read\" or \"mod\".")
+       
+        if self.__jsonDict[__key] in [None, ""]:
+            return dt.datetime(1900, 1, 1, 0, 0, 0)
+        return dt.datetime.strptime(self.__jsonDict[__key], self.__formatTime)
+
+
+    #def get_last_read(self):
+    #    '''
+    #    Get the time of last read
+    # 
+    #    Returns
+    #    -------
+    #    datetime : the datetime instance corresponding to the time last read.
+    #    '''
+    #    return dt.datetime.strptime(self.__jsonDict["timeLastRead"], self.__formatTime)
+
+    #def get_mod_time(self):
+    #    '''
+    #    Get the time of last modification
+
+    #    Returns
+    #    -------
+    #    `datetime` instance representing the time of last modification
+    #    if "timeLastMod" is null, return datime(1900, 1, 1, 0, 0, 0)
+    #    '''
+    #    if self.__jsonDict["timeLastMod"] in [None, ""]:
+    #        return dt.datetime(1900, 1, 1, 0, 0, 0)
+    #    return dt.datetime.strptime(self.__jsonDict["timeLastMod"], self.__formatTime)
 
     def update_page(self, pageType, pageNew):
         '''

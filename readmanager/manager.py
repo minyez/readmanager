@@ -35,7 +35,7 @@ class manager():
 
     # try to get custom config file path from READMANA_CONFIG environment variable
 
-    def __init__(self, pathConfig):
+    def __init__(self, pathConfig, modeBatch=False):
         '''
         Initialize the book manager instance from the JSON file pathConfig
         
@@ -43,6 +43,8 @@ class manager():
         ----------
         pathConfig : str
             the path of config json
+        modeBatch : bool
+            flag for batch mode, used for unittest of executable and (seldom) fast modification
         '''
         assert not os.path.isdir(pathConfig)
         if os.path.isfile(pathConfig):
@@ -52,6 +54,8 @@ class manager():
         #if os.path.abspath(pathConfig) == self.__pathConfigDe:
         #    self.__fUseConfigDe = True
         self.books = []
+        assert isinstance(modeBatch, bool)
+        self.modeBatch = modeBatch
         #self.__check_config()
         self.__load_config()
         self.__load_book_items()
@@ -115,7 +119,7 @@ class manager():
         '''
         Sort book_item instances by descending datetime
         '''
-        self.books = sorted(self.books, key=lambda x: x.get_mod_time(), reverse=True)
+        self.books = sorted(self.books, key=lambda x: x.get_last_time("mod"), reverse=True)
 
     def sort_books_by_author(self):
         '''
@@ -151,23 +155,25 @@ class manager():
         self.update_json_all()
         self.__load_book_items(reLoad=True)
 
-    def get_keys(self, tag):
+    def get_keys(self, key):
         '''
-        Get the values of a particular tag from all book_item by get_key method
+        Get the values of a particular key from all books by get_key book_item method
         See book_item class for more information
      
         Parameters
         ----------
-        tag : str
-            the name of the tag
+        key : str
+            the name of the key
      
         Returns
         -------
-        list : values of the tag from all book_item.
+        list : values of the key from all book_item.
             has the same length as self.books. 
-            None if the tag does not exist for the book_item
+            None if the key does not exist for the book_item
         '''
-        return [bi.get_key(tag) for bi in self.books]
+        # TODO: "log", "tag", "remark" get
+        assert not key in ["log", "tag", "remark"]
+        return [bi.get_key(key) for bi in self.books]
 
     def get_progress_all(self):
         '''
