@@ -5,29 +5,84 @@ Main executable classes of readmanager.
 
 from __future__ import print_function, absolute_import
 import sys
+#from copy import deepcopy
 from readmanager import utils, opener
 from readmanager.manager import manager
 from readmanager.presenter import presenter
 
-class __executable:
+class readmanager_ui():
     '''
-    metaclass for public methods of ui and batch mode
+    readmanager user interface class
     '''
 
-    helpStrRead = ''
-    helpStr0SQ = ''
-    helpStrMana = ''
-    helpStrPre = ''
-    helpStrManaPre = ''
-    helpStrExit = ''
-    helpStrPrompt = ''
-    helpStr = ''
+    def __init__(self, modeRead=False, modeNonInter=False):
+     
+        assert isinstance(modeRead, bool)
+        self.modeRead = modeRead
+        self.helpStrRead = ''
+        self.helpStr0SQ = ''
+        self.helpStrMana = ''
+        self.helpStrPre = ''
+        self.helpStrManaPre = ''
+        self.helpStrExit = ''
+        self.helpStrPrompt = ''
+        self.helpStr = ''
 
-    dictOptionsMana = {}
-    dictOptionsPre = {}
-    dictOptionsManaPre = {}
+        self.dictOptionsMana = {}
+        self.dictOptionsPre = {}
+        self.dictOptionsManaPre = {}
+     
+        # flush screen and show all items once.
+        if not modeNonInter:
+            utils.flush_screen()
+        # get config file path
+        configFile = utils.get_config()
+        # initialize manager instance
+        self.__bm = manager(configFile, modeNonInter=modeNonInter)
+        # initialize presenter instance
+        self.__pre = presenter(self.__bm)
+        
+        # ===================================================================
+        # initialize options and help string
+        self.__set_utils_options_mana()
+        self.__set_utils_options_pre()
+        self.__set_utils_options_manapre()
+        self.__set_ui_help_str()
+        self.__update_helpStr()
 
-    def set_help_str(self):
+    def __set_utils_options_mana(self):
+        '''
+        Method to define option dictionary of manager utilities 
+        '''
+        self.dictOptionsMana = { \
+           "s": utils.save_exit, \
+           "m": utils.modify, \
+           "c": utils.create_new, \
+           # "check archive"
+           # "archive"
+           # "unarchive"
+           }
+
+    def __set_utils_options_pre(self):
+        '''
+        Method to define option dictionary of presenter utilities 
+        '''
+        self.dictOptionsPre = { \
+           "p": utils.print_pre, \
+           "i": utils.show_item_details, \
+           "f": utils.find_item, \
+           "t": utils.show_tags, \
+           }
+
+    def __set_utils_options_manapre(self):
+        '''
+        Method to define option dictionary of utilities of manager+presenter
+        '''
+        self.dictOptionsManaPre = { \
+           "S": utils.sort_items, \
+           }
+
+    def __set_ui_help_str(self):
         '''
         define help string for UI
         '''
@@ -38,57 +93,6 @@ class __executable:
         self.helpStrManaPre = ''
         self.helpStrExit = '    other letters or <0: quit without save;\n'
         self.helpStrPrompt = '--> '
-
-    def set_utils_options(self):
-        '''
-        Method to define option dictionary utilities 
-        '''
-        self.dictOptionsMana = { \
-           "s": utils.save_exit, \
-           "m": utils.modify, \
-           "c": utils.create_new, \
-           }
-        self.dictOptionsPre = { \
-           "p": utils.print_pre, \
-           "i": utils.show_item_details, \
-           "f": utils.find_item, \
-           "t": utils.show_tags, \
-           }
-        self.dictOptionsManaPre = { \
-           "S": utils.sort_items, \
-           }
-
-class readmanager_ui(__executable):
-    '''
-    readmanager user interface class
-    '''
-
-    def __init__(self, modeCheck=False, modeRead=False):
-     
-        assert isinstance(modeCheck, bool)
-        assert isinstance(modeRead, bool)
-        self.modeCheck = modeCheck
-        self.modeRead = modeRead
-     
-        # get config file path
-        configFile = utils.get_config()
-        # initialize manager instance
-        self.__bm = manager(configFile, modeBatch=False)
-        # flush screen and show all items once.
-        if not modeCheck:
-            utils.flush_screen()
-        self.__pre = presenter(self.__bm)
-        
-        # initialize presenter instance
-        self.__pre.show()
-        # if check-mode is triggered, exit safely
-        # ===================================================================
-        if self.modeCheck:
-            sys.exit(0)
-        self.set_utils_options()
-        self.set_help_str()
-        self.__update_helpStr()
-        self.loop()
 
     def __update_helpStr(self):
 
@@ -114,23 +118,6 @@ class readmanager_ui(__executable):
                 self.helpStrExit + \
                 self.helpStrPrompt
    
-    def loop(self):
-        '''
-        start main UI loop
-        '''
-        fRetry = False
-        while True:
-            if fRetry:
-                option = input(self.helpStrPrompt).strip()
-            else:
-                option = input(self.helpStr).strip()
-                
-            try:
-                iBI = int(option) - 1
-                fRetry = self.__read_book(iBI)
-            except ValueError:
-                fRetry = self.__run_option(option)
-
     def __read_book(self, iBI):
         '''
         Read the book and open the note by functions defined in opener
@@ -156,7 +143,13 @@ class readmanager_ui(__executable):
             utils.exit_wo_save()
         return fRetry
 
-    def __run_option(self, option):
+    def show_pre(self):
+        '''
+        Show the presenter
+        '''
+        self.__pre.show()
+
+    def run_option(self, option):
         '''
         Run utility defined by the option dictionary, specified by argument 'option'
 
@@ -188,22 +181,52 @@ class readmanager_ui(__executable):
             utils.exit_wo_save()
         return False
 
-#TODO batch mode
-class readmanager_batch(__executable):
-    '''
-    Readmanager batch mode class
-    '''
+    def loop(self):
+        '''
+        start main UI loop
+        '''
+        fRetry = False
+        while True:
+            if fRetry:
+                option = input(self.helpStrPrompt).strip()
+            else:
+                option = input(self.helpStr).strip()
+                
+            try:
+                iBI = int(option) - 1
+                fRetry = self.__read_book(iBI)
+            except ValueError:
+                fRetry = self.run_option(option)
 
-    def __init__(self, command):
-        '''
-        command : str list
-        '''
-        self.set_utils_options()
-        self.__analyze_command(command)
+#T O D O batch mode
+#class readmanager_batch(__executable):
+#    '''
+#    Readmanager batch mode class. 
+#    '''
+#
+#    def __init__(self, command):
+#        '''
+#        command : str list
+#        '''
+#        configFile = utils.get_config()
+#        self.__bm = manager(configFile, modeBatch=True)
+#        self.__command = command
+#        self.set_utils_options_mana()
+#        self.__analyze_command()
+#
+#    def __analyze_command(self):
+#        '''
+#        Analyze the command input
+#        '''
+#        
+#        __command = deepcopy(self.__command)
+#        __opt = __command[0]
+#        del __command[0]
+#        try:
+#            iBI = int(__opt)
+#        except ValueError:
+#            if __opt == "FA":
+#                pass
 
-    def __analyze_command(self, command):
-        '''
-        Analyze the command input
-        '''
-        pass
+            
 

@@ -58,11 +58,15 @@ These keys are human-readable for you to modify them manually, but can also be m
 
 ## TODO
 
-- [ ] compatibility of showing Chinese for presenter class
-- [ ] show all existing tags 
 - [x] sort items in manager instance by last modification time of books when loading
 - [x] support item searching of author, title or tags of book
 - [x] add short remarks for a book
+- [ ] (!) non-interactive mode for unittest
+- [ ] compatibility of showing Chinese for presenter class
+- [ ] show all existing tags 
 - [ ] marker for 3 most recent read
-- [ ] archiev method of manager class
-- [ ] Batch mod
+- [ ] archive method of manager class
+
+## Screenshot
+
+![screenshot-20181024](doc/screenshot-20181024-112244.jpg)

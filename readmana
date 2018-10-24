@@ -4,6 +4,7 @@ A simple manager for book reading and note.
 '''
 
 from __future__ import print_function, absolute_import
+import sys
 from argparse import ArgumentParser
 from readmanager import main
 
@@ -16,13 +17,12 @@ mode.add_argument("-c", dest='check', action="store_true", \
         help="Check-mode: check book items")
 mode.add_argument("-r", dest='read', action="store_true", \
         help="Read-mode: read books without access to modify book items")
-mode.add_argument("-b", dest='batch', nargs="+", \
-        help="Batch-mode (for utility test only))")
 params = parser.parse_args()
 # ===================================================================
 
-if not params.batch:
-    ui = main.readmanager_ui(modeCheck=params.check, modeRead=params.read)
-else:
-    main.readmanager_batch(params.batch)
+ui = main.readmanager_ui(modeRead=params.read)
+ui.show_pre()
+if params.check:
+    sys.exit(0)
+ui.loop()
 

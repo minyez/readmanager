@@ -35,7 +35,7 @@ class manager():
 
     # try to get custom config file path from READMANA_CONFIG environment variable
 
-    def __init__(self, pathConfig, modeBatch=False):
+    def __init__(self, pathConfig, modeNonInter=False):
         '''
         Initialize the book manager instance from the JSON file pathConfig
         
@@ -43,8 +43,8 @@ class manager():
         ----------
         pathConfig : str
             the path of config json
-        modeBatch : bool
-            flag for batch mode, used for unittest of executable and (seldom) fast modification
+        modeNonInter : bool
+            flag for non-interactive mode, used for unittest of ui
         '''
         assert not os.path.isdir(pathConfig)
         if os.path.isfile(pathConfig):
@@ -54,8 +54,9 @@ class manager():
         #if os.path.abspath(pathConfig) == self.__pathConfigDe:
         #    self.__fUseConfigDe = True
         self.books = []
-        assert isinstance(modeBatch, bool)
-        self.modeBatch = modeBatch
+        self.booksArchive = []
+        assert isinstance(modeNonInter, bool)
+        self.modeNonIner = modeNonInter
         #self.__check_config()
         self.__load_config()
         self.__load_book_items()
@@ -84,6 +85,13 @@ class manager():
             self.dbJSON = os.path.expanduser(os.path.expandvars(self.__dictConfig["dbJSON"]))
         assert os.path.isdir(self.dbJSON)
 
+        # Archive database under dbJSON
+        self.dbArchive = os.path.join(self.dbJSON, "archive")
+        try:
+            assert os.path.isdir(self.dbArchive)
+        except AssertionError:
+            os.makedirs(self.dbArchive)
+
         if self.__dictConfig["dbNote"] in ["-", "-/"]:
             self.dbNote = os.path.abspath(self.pathConfig + "/../note")
         else:
@@ -97,7 +105,8 @@ class manager():
 
     def __load_book_items(self, reLoad=False):
         '''
-        load all json files in dbJSON directory as a list of book_item instances
+        load all json files in dbJSON directory as a list of book_item instances to self.books list
+        Note that this method will first clean the self.books list.
         '''
         if not reLoad:
             print("Manager getting all book items...", end=" ")
@@ -106,9 +115,13 @@ class manager():
         
         # clear books
         self.books = []
+        self.booksArchive = []
         for ifile in os.listdir(self.dbJSON):
             if fnmatch(ifile.lower(), "*.json"):
                 self.books.append(book_item(os.path.join(self.dbJSON, ifile)))
+        for ifile in os.listdir(self.dbArchive):
+            if fnmatch(ifile.lower(), "*.json"):
+                self.booksArchive.append(book_item(os.path.join(self.dbArchive, ifile)))
         if not reLoad:
             print("Done. %d items read." % len(self.books))
         else:
@@ -146,6 +159,8 @@ class manager():
         '''
         for bi in self.books:
             bi.update_json()
+        for bi in self.booksArchive:
+            bi.update_json()
 
     def refresh(self):
         '''
@@ -157,8 +172,9 @@ class manager():
 
     def get_keys(self, key):
         '''
-        Get the values of a particular key from all books by get_key book_item method
+        Get the values of a particular key from all books by get_key book_item method.
         See book_item class for more information
+        Note that "log" and "remark" cannot be extracted by get_keys. (TODO)
      
         Parameters
         ----------
@@ -168,11 +184,19 @@ class manager():
         Returns
         -------
         list : values of the key from all book_item.
-            has the same length as self.books. 
+            if key == "tag", the list consists all unique (case-insensitive) tags
             None if the key does not exist for the book_item
         '''
-        # TODO: "log", "tag", "remark" get
-        assert not key in ["log", "tag", "remark"]
+        assert not key in ["log", "remark"]
+        if key == "tag":
+            __tags = []
+            for bi in self.books:
+                __tagi = bi.get_key("tag")
+                for i in __tagi:
+                    if not i.lower() in __tags:
+                        __tags.append(i)
+            return __tags
+                    
         return [bi.get_key(key) for bi in self.books]
 
     def get_progress_all(self):
@@ -207,6 +231,12 @@ class manager():
             notePath = os.path.join(self.dbNote, notePath[2:])
         return notePath
 
+    def get_first_match(self, key, pattern):
+        '''
+        Get the first match of pattern in the key domain of book item
+        '''
+        pass
+
     def get_note_source_state(self, iBI):
         '''
         Parameters
@@ -231,3 +261,16 @@ class manager():
         
         return tuple(state)
 
+# TODO archive/unarchive books
+    def archive(self, iBI, op):
+        '''
+        Archive/Unarchive
+
+        Parameters
+        ----------
+        iBI : int or a list of int
+            index or list of indices of book item
+        op : str, "arch" or "unarch"
+        
+        '''
+        pass

@@ -44,7 +44,8 @@ def __init_default_config(pathConfig):
     # check JSON and note databases
     try:
         os.makedirs(dbJSON)
-        print("JSON database created: %s" % dbJSON)
+        os.makedirs(os.path.join(dbJSON, "archive"))
+        print("JSON and archive database created: %s" % dbJSON)
     except FileExistsError:
         print("JSON database exist: %s" % dbJSON)
      
@@ -417,7 +418,7 @@ def show_item_details(pre):
 
 def print_pre(pre):
     '''
-    show the Presenter
+    print the Presenter
     '''
     assert isinstance(pre, presenter)
     pre.rebuild()
@@ -425,7 +426,7 @@ def print_pre(pre):
 
 def show_tags(pre):
     '''
-    show all existing Tags of the books
+    show all existing Tags of the books (TODO)
 
     Paramters
     ---------

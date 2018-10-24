@@ -48,7 +48,7 @@ def open_book(bm, iBI):
     else:
         print("--  Open utility for %s is not supported. Please open manually." % platform) 
      
-    __fUpdate = ask_for_sure("--  Update page?")
+    __fUpdate = ask_for_sure("--  Update page? (Current %d)" % book.pageCurrent)
     if __fUpdate:
         while True:
             __pageNew = input("    %d --> (max %d) " % (book.pageCurrent, book.pageTotal))

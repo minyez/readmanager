@@ -1,5 +1,5 @@
 '''
-readmanager imports
+readmanager package
 '''
 __VERSION__ = "0.0.1"
 
@@ -8,3 +8,4 @@ from readmanager import manager
 from readmanager import presenter
 from readmanager import utils
 from readmanager import opener
+from readmanager import main
