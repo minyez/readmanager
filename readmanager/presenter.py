@@ -5,6 +5,7 @@ the presenter class is defined to show the reading and note progress of books
 
 from __future__ import print_function, absolute_import
 import sys
+import re
 import subprocess as sp
 from readmanager.manager import manager
 #from readmanager.bookitem import book_item
@@ -117,13 +118,16 @@ class presenter:
         iBI : int
             the index of item in self.__manager.books
         '''
+        # set __nSpaceSep to avoid bad view for too long title/author
         __nSpaceSep = 4
         noteState, sourceState = self.__manager.get_note_source_state(iBI)
+        au = self.__authors[iBI]
+        ti = self.__titles[iBI]
         print(self.__formatItem % (
             self.__colorItem, \
             self.__lenIndex, iBI + 1, \
-            self.__lenAuthor, self.__lenAuthor - __nSpaceSep, self.__authors[iBI], \
-            self.__lenTitle, self.__lenTitle - __nSpaceSep, self.__titles[iBI], \
+            self.__lenAuthor - get_n_cjk(au), self.__lenAuthor - __nSpaceSep, au, \
+            self.__lenTitle - get_n_cjk(ti), self.__lenTitle - __nSpaceSep, ti, \
             self.__lenPageTot, self.__pages[iBI], \
             self.__lenNoteMark, get_file_state_marker(noteState), \
             self.__lenSourceMark, get_file_state_marker(sourceState), \
@@ -132,6 +136,7 @@ class presenter:
             self.__lenProg, self.__progress[iBI][0], \
             self.__colorEnd, \
             ))
+
 
 def get_file_state_marker(fileState):
     '''
@@ -149,6 +154,38 @@ def get_file_state_marker(fileState):
     if fileState is True:
         return "◆"
     return "?"
+
+def get_n_cjk(cjkstr):
+    '''
+    get the number of CJK characters, hiragana and katakana, for the support of viewing Chinese etc.
+
+    Parameters
+    ----------
+    cjkstr : str
+        string to check the number of CJK characters
+
+    Returns
+    int : the number of CJK characters
+    '''
+    n = 0
+    __uCommonCJK = u'[\u4e00-\u9fff]'
+    __uSymbolPunc = u'[\u3000-\u303F]'
+    __uHiraGana = u'[\u3040-\u309F]'
+    __uKataKana = u'[\u30A0-\u30FF]'
+
+    __uList = [
+        __uCommonCJK, \
+        __uSymbolPunc, \
+        __uHiraGana, \
+        __uKataKana, \
+            ]
+    __ucjkstr = u'%s' % cjkstr
+    
+    for x in cjkstr:
+        for ul in __uList:
+            if re.search(ul, x):
+                n += 1
+    return n
 
 def prog_barstr(prog, totalBarLen, use256=False):
     '''
