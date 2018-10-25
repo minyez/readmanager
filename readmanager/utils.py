@@ -131,39 +131,40 @@ def modify(bm):
     Modify an book item
     '''
     assert isinstance(bm, manager)
-    n = input("--  Which book to modify (#, 0 to return): ")
-    try:
-        n = int(n)
-        if n == 0:
-            return
-    except ValueError:
-        print("    Invalid input. Break out.")
-        return
-    iBI = n - 1
+    while True:
+        n = input("--  Which book to modify (#, 0 to return): ")
+        try:
+            n = int(n)
+            if n == 0:
+                break
+        except ValueError:
+            print("    Invalid input. Break out.")
+            break
+        iBI = n - 1
 
-    __dictOption = { \
-            "nd": __modify_note_dir, \
-            "nt": __modify_note_type, \
-            "pd": __modify_plan_date, \
-            "tp": __modify_total_page, \
-            "sp": __modify_source_path, \
-            "a": __modify_author, \
-            "t": __modify_title, \
-            "at": __add_tag, \
-            "dt": __delete_tag, \
-            "r": __add_remark, \
-            }
-    __book = bm[iBI]
-    __helpStr = ''
-    for key in sorted(__dictOption.keys()):
-        __helpStr += "    %2s : %s\n" % (key, get_func_doc(__dictOption[key]))
+        __dictOption = { \
+                "nd": __modify_note_dir, \
+                "nt": __modify_note_type, \
+                "pd": __modify_plan_date, \
+                "tp": __modify_total_page, \
+                "sp": __modify_source_path, \
+                "a": __modify_author, \
+                "t": __modify_title, \
+                "at": __add_tag, \
+                "dt": __delete_tag, \
+                #"r": __add_remark, \
+                }
+        __book = bm[iBI]
+        __helpStr = ''
+        for key in sorted(__dictOption.keys()):
+            __helpStr += "    %2s : %s\n" % (key, get_func_doc(__dictOption[key]))
 
-    __selection = input(__helpStr + "--  select: ").strip()
-    try: 
-        __dictOption[__selection](__book)
-    except KeyError:
-        print("    Invalid input. Break out.")
-        return
+        __selection = input(__helpStr + "--  select: ").strip()
+        try: 
+            __dictOption[__selection](__book)
+        except KeyError:
+            print("    Invalid input. Break out.")
+            break
 
 # ===========================================================
 # key modify utilities
@@ -282,17 +283,28 @@ def __delete_tag(BI):
     print("    Tags now: '%s'" % "', '".join(__tagsCurrent))
     __listTag = input("    tags to delete (separate by space): ").split()
     BI.update_tag(__listTag, fAdd=False)
+# ===========================================================
 
-def __add_remark(BI):
+def add_remark(bm):
     '''
-    add remark for today
+    add quick Remark for today
 
     Paramters
     ---------
-    BI : book_item instance
+    bm : manager instance
     '''
+    n = input("--  Which book to remark (#, 0 to return): ")
+    try:
+        n = int(n)
+        if n == 0:
+            return
+    except ValueError:
+        print("    Invalid input. Break out.")
+        return
+    iBI = n - 1
+    __book = bm.books[iBI]
     __remark = input("    New remark (be short, otherwise write it in note): \n    > ").strip()
-    BI.update_remark(__remark)
+    __book.update_remark(__remark)
 
 def get_func_doc(func):
     '''
@@ -424,6 +436,7 @@ def print_pre(pre):
     pre.rebuild()
     pre.show()
 
+# TODO show_tags
 def show_tags(pre):
     '''
     show all existing Tags of the books (TODO)
@@ -455,18 +468,20 @@ def sort_items(bm, pre):
     assert isinstance(bm, manager)
     assert isinstance(pre, presenter)
 
-    __key = input("--  Sort by? [(T)itle, (A)uthor, last(M)od] ")
-
-    __keyTitle = ["t", "title", ]
-    __keyAuthor = ["a", "author", ]
-    __keyLastMod = ["m", "lastmod", ]
+    __key = input("--  Sort by? [(T)itle, (A)uthor, last(M)od, last(R)ead] ").strip()
+    __keyTitle = ["t", "T", "title", ]
+    __keyAuthor = ["a", "A", "author", ]
+    __keyLastMod = ["m", "M", "lastmod", ]
+    __keyLastRead = ["r", "R", "lastread", ]
 
     if __key in __keyTitle:
-        bm.sort_books_by_title()
+        bm.sort_books_by("title")
     if __key in __keyAuthor:
-        bm.sort_books_by_author()
+        bm.sort_books_by("author")
     if __key in __keyLastMod:
-        bm.sort_books_by_mod_time()
+        bm.sort_books_by("mod")
+    if __key in __keyLastRead:
+        bm.sort_books_by("read")
 
     pre.rebuild()
     pre.show()

@@ -21,8 +21,8 @@ params = parser.parse_args()
 # ===================================================================
 
 ui = main.readmanager_ui(modeRead=params.read)
-ui.show_pre()
 if params.check:
+    ui.show_pre()
     sys.exit(0)
 ui.loop()
 

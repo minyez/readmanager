@@ -126,21 +126,46 @@ class manager():
             print("Done. %d items read." % len(self.books))
         else:
             print("Reloaded. %d items read." % len(self.books))
-        self.sort_books_by_mod_time()
+        self.sort_books_by("read")
 
-    def sort_books_by_mod_time(self):
+    def sort_books_by(self, sortkey):
+        '''
+        Sort the book items by the keyword sortkey
+
+        Parameters
+        ----------
+        sortkey : str
+            the keyword to sort
+        '''
+        __sortMethod = {
+            "mod": self.__sort_books_by_mod_time, 
+            "read": self.__sort_books_by_read_time, 
+            "author": self.__sort_books_by_author, 
+            "title": self.__sort_books_by_title, 
+            }
+        if sortkey in __sortMethod.keys():
+            __sortMethod[sortkey]()
+
+
+    def __sort_books_by_mod_time(self):
         '''
         Sort book_item instances by descending datetime
         '''
         self.books = sorted(self.books, key=lambda x: x.get_last_time("mod"), reverse=True)
 
-    def sort_books_by_author(self):
+    def __sort_books_by_read_time(self):
+        '''
+        Sort book_item instances by descending datetime
+        '''
+        self.books = sorted(self.books, key=lambda x: x.get_last_time("read"), reverse=True)
+
+    def __sort_books_by_author(self):
         '''
         Sort book_item instances by ascending author name, with simple string comparing
         '''
         self.books = sorted(self.books, key=lambda x: x.get_author())
 
-    def sort_books_by_title(self):
+    def __sort_books_by_title(self):
         '''
         Sort book_item instances by ascending author name, with simple string comparing
         '''

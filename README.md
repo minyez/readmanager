@@ -24,7 +24,7 @@ Run
 ```bash
 $ readmana
 ```
-in terminal to start reading-manager. For help information, run
+in terminal to start reading-manager, and follow the instructions. For help information, run
 ```bash
 $ readmana -h
 ```
@@ -46,8 +46,7 @@ The default `config.json` is
 }
 ```
 `dbJSON` and `dbNote` can be specified interactively when initializing the default `config.json`.
-Particularly, they can both be set as `"-/"` to make `dbJSON` and `dbNote` refer to `JSON` and `note` diretories
-in the same path as the configuration file.
+Particularly, they can both be set as `"-/"` to make `dbJSON` and `dbNote` refer to `JSON` and `note` diretories in the same path as the configuration file.
 
 ## Book JSON example
 
@@ -58,15 +57,15 @@ These keys are human-readable for you to modify them manually, but can also be m
 
 ## TODO
 
-- [x] sort items in manager instance by last modification time of books when loading
+- [x] sort items in manager instance by last ~~modification~~read time of books when loading
 - [x] support item searching of author, title or tags of book
 - [x] add short remarks for a book
 - [x] compatibility of showing CJK characters for presenter class
 - [ ] (!) non-interactive mode for unittest
+- [ ] note templates
 - [ ] show all existing tags 
-- [ ] marker for 3 most recent read
 - [ ] archive method of manager class
 
 ## Screenshot
 
-![screenshot-20181024](doc/screenshot-20181024-112244.jpg)
+![screenshot-20181024](doc/screenshot-20181025-120422.jpg)

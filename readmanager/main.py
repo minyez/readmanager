@@ -58,6 +58,7 @@ class readmanager_ui():
            "s": utils.save_exit, \
            "m": utils.modify, \
            "c": utils.create_new, \
+           "r": utils.add_remark, \
            # "check archive"
            # "archive"
            # "unarchive"
@@ -147,7 +148,7 @@ class readmanager_ui():
         '''
         Show the presenter
         '''
-        self.__pre.show()
+        utils.print_pre(self.__pre)
 
     def run_option(self, option):
         '''
@@ -190,6 +191,8 @@ class readmanager_ui():
             if fRetry:
                 option = input(self.helpStrPrompt).strip()
             else:
+                utils.flush_screen()
+                self.show_pre()
                 option = input(self.helpStr).strip()
                 
             try:
