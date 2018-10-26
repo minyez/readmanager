@@ -126,8 +126,8 @@ class presenter:
         print(self.__formatItem % (
             self.__colorItem, \
             self.__lenIndex, iBI + 1, \
-            self.__lenAuthor - get_n_cjk(au), self.__lenAuthor - __nSpaceSep, au, \
-            self.__lenTitle - get_n_cjk(ti), self.__lenTitle - __nSpaceSep, ti, \
+            self.__lenAuthor - get_n_cjk(au), self.__lenAuthor - get_n_cjk(au) - __nSpaceSep, au, \
+            self.__lenTitle - get_n_cjk(ti), self.__lenTitle - get_n_cjk(ti) - __nSpaceSep, ti, \
             self.__lenPageTot, self.__pages[iBI], \
             self.__lenNoteMark, get_file_state_marker(noteState), \
             self.__lenSourceMark, get_file_state_marker(sourceState), \
