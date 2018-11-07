@@ -87,7 +87,7 @@ class readmanager_ui():
         '''
         define help string for UI
         '''
-        self.helpStrRead = 'Menu:\n    #: open No.# book and note (if available);\n'
+        self.helpStrRead = 'Menu:\n    #: open No.# book and note (end with & to avoid note);\n'
         self.helpStr0SQ = ''
         self.helpStrMana = ''
         self.helpStrPre = ''
@@ -119,13 +119,15 @@ class readmanager_ui():
                 self.helpStrExit + \
                 self.helpStrPrompt
    
-    def __read_book(self, iBI):
+    def __read_book(self, iBI, fNoNote=False):
         '''
         Read the book and open the note by functions defined in opener
         
         Parameters
         ----------
         iBI : int
+        fNoNote : bool
+            flag for recording page without openning any book or note source
 
         Returns
         -------
@@ -134,7 +136,7 @@ class readmanager_ui():
         '''
         if iBI in range(len(self.__bm)):
             fRetry = False
-            opener.open_book(self.__bm, iBI)
+            opener.open_book(self.__bm, iBI, fNoNote)
         elif iBI >= len(self.__bm):
             print("Invalid book #. Retry. ", end="")
             fRetry = True
@@ -199,7 +201,14 @@ class readmanager_ui():
                 iBI = int(option) - 1
                 fRetry = self.__read_book(iBI)
             except ValueError:
-                fRetry = self.run_option(option)
+                if option.endswith("&"):
+                    try:
+                        iBI = int(option[:-1]) - 1
+                        fRetry = self.__read_book(iBI, fNoNote=True)
+                    except ValueError:
+                        pass
+                else:
+                    fRetry = self.run_option(option)
 
 #T O D O batch mode
 #class readmanager_batch(__executable):

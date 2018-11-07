@@ -6,12 +6,13 @@ Routines used to open the book and note files
 
 from __future__ import print_function, absolute_import
 import sys
+import time
 import subprocess as sp
 from readmanager.manager import manager
 from readmanager.utils import ask_for_sure
 
 # ===========================================================
-def open_book(bm, iBI):
+def open_book(bm, iBI, fNoNote=False):
     '''
     Open the book and note with the default opener in subprocess
     and ask for page and log update
@@ -22,6 +23,8 @@ def open_book(bm, iBI):
     bm : manager instance
     iBI : int
         the index of the book item in bm
+    fNoNote : bool
+        flag for recording page without openning book or note source
     '''
     assert isinstance(bm, manager)
     assert iBI in range(len(bm))
@@ -38,13 +41,15 @@ def open_book(bm, iBI):
             }
     platform = sys.platform
 
-    print("--  Try to open note from: %s" % pathNote)
-    print("--  Try to open file from: %s" % pathFile)
+    if not fNoNote and stateNote:
+        print("--  Try to open note from: %s" % pathNote)
+    if stateFile:
+        print("--  Try to open file from: %s" % pathFile)
     if platform.lower() in openSystem:
         openSystem[platform.lower()](bm, \
                                      (stateNote, stateFile), \
                                      (pathNote, pathFile), \
-                                     (extNote, extFile))
+                                     (extNote, extFile), fNoNote)
     else:
         print("--  Open utility for %s is not supported. Please open manually." % platform) 
      
@@ -68,8 +73,9 @@ def open_book(bm, iBI):
         print("--  Log, JSON updated :)")
     else:
         print("--  Maybe next time :)")
+    time.sleep(1)
 
-def __open_book_darwin(bm, states, paths, exts):
+def __open_book_darwin(bm, states, paths, exts, fNoNote=False):
     '''
     Open the book and note with the default opener in subprocess for macOS
 
@@ -101,13 +107,13 @@ def __open_book_darwin(bm, states, paths, exts):
             openerFile.extend(["-a", bm.opener[extFile]])
 
     # start opening by calling subprocess
-    if stateNote:
+    if stateNote and not fNoNote:
         noteProc = sp.Popen(openerNote)
     if stateFile:
         fileProc = sp.Popen(openerFile)
 
 # TODO Windows open utility
-def __open_book_windows(bm, states, paths, exts):
+def __open_book_windows(bm, states, paths, exts, fNoNote=False):
     '''
     Open the book and note with the default opener in subprocess for Windows
     
@@ -132,20 +138,20 @@ def __open_book_windows(bm, states, paths, exts):
         # opener with Textedit for file without extension
         openerFile.append("-e")
     if extNote in bm.opener:
-        if bm.opener[extNote] is not None:
+        if bm.opener[extNote] is not None and not fNoNote:
             openerNote.extend(["", bm.opener[extNote]])
     if extFile in bm.opener:
         if bm.opener[extFile] is not None:
             openerFile.extend(["", bm.opener[extFile]])
 
     # start opening by calling subprocess
-    if stateNote:
+    if stateNote and not fNoNote:
         noteProc = sp.Popen(openerNote)
     if stateFile:
         fileProc = sp.Popen(openerFile)
 
 # TODO Linux open utility
-def __open_book_linux(bm, states, paths, exts):
+def __open_book_linux(bm, states, paths, exts, fNoNote=False):
     '''
     Open the book and note with the default opener in subprocess for Linux
 
@@ -177,7 +183,7 @@ def __open_book_linux(bm, states, paths, exts):
             openerFile.extend(["", bm.opener[extFile]])
 
     # start opening by calling subprocess
-    if stateNote:
+    if stateNote and not fNoNote:
         noteProc = sp.Popen(openerNote)
     if stateFile:
         fileProc = sp.Popen(openerFile)
